@@ -29,12 +29,17 @@ public class FormulaCalculater {
 			throw new Exception("KernelLink");
 		}
 		List<String> singleExprList = splitExpr(complexExpr);
+		if (singleExprList == null || singleExprList.isEmpty()) {
+			System.out.println("failed to split complex expr and get nothing.");
+			return null;
+		}
 		List<List<BigInteger>> multiRet = new ArrayList<List<BigInteger>>();
 		for (String singleExpr : singleExprList) {
+			//TODO(shenchen): IMPORTANT: continues calculation may have different results,
 			multiRet.add(getFromSingleExpr(singleExpr));
 		}
 		// sample == null means don't compare and return first elem not null and not emtpy
-		if (sample == null) {
+		if (sample == null || sample.isEmpty()) {
 			for (List<BigInteger> singleRet : multiRet) {
 				if (singleRet != null && !singleRet.isEmpty()) return singleRet;
 			}
@@ -42,10 +47,10 @@ public class FormulaCalculater {
 			// return the first one elem that matches sample
 			// convert sample to List<BigInteger>
 			sample = sample.trim();
-			String[] sampleNumbers = sample.split(", ");
+			String[] sampleNumbers = sample.split(",");
 			List<BigInteger> sampleNumberList = new ArrayList<BigInteger>();
-			for (String s : sampleNumbers) {
-				sampleNumberList.add(new BigInteger(s));
+			for (String sampleNumber : sampleNumbers) {
+				sampleNumberList.add(new BigInteger(sampleNumber.trim()));
 			}
 			for (List<BigInteger> singleRet : multiRet) {
 				if (compareTwoBigIntegerList(sampleNumberList, singleRet)) {
@@ -58,17 +63,27 @@ public class FormulaCalculater {
 	
 	// call calculateToList and get the String form
 	public String calculateToString(String complexExpr, String sample) throws Exception{
-		return calculateToList(complexExpr, sample).toString();
+		List<BigInteger> retList =  calculateToList(complexExpr, sample);
+		if (retList == null) return null;
+		return retList.toString();
 	}
 	
 	// only care about single expression and return its result
-	private List<BigInteger> getFromSingleExpr(String expr) throws MathLinkException {
-		kernelLink.evaluate(expr);
-		kernelLink.waitForAnswer();
-		String[] a = kernelLink.getStringArray1();
-		List<BigInteger> numberList = new ArrayList<BigInteger>();
-		for (String s : a) {
-			numberList.add(new BigInteger(s));
+	private List<BigInteger> getFromSingleExpr(String expr) {
+		String[] numStrArray = null;
+		List<BigInteger> numberList = null;
+		try {
+			kernelLink.evaluate(expr);
+			kernelLink.waitForAnswer();
+			numStrArray = kernelLink.getStringArray1();
+			numberList = new ArrayList<BigInteger>();
+		} catch (MathLinkException e) {
+			System.out.println("Expcetion : " + e.toString() + ". when evaluating '" 
+				+ expr + "'");
+			return null;
+		}
+		for (String numStr : numStrArray) {
+			numberList.add(new BigInteger(numStr));
 		}
 		return numberList;
 	}
@@ -80,18 +95,34 @@ public class FormulaCalculater {
 		int singleRetLength = singleRet.size();
 		int minLength = Math.min(sampleNumberListLength, singleRetLength);
 		for (int i = 0; i <= minLength - 1; i++) {
-			if (sampleNumberList.get(i).equals(singleRet.get(i))) return false;
+			if (!sampleNumberList.get(i).equals(singleRet.get(i))) return false;
 		}
 		return true;
 	}
 	
 	// according to different rules, split expr and try
-	List<String> splitExpr(String expr) {
-		//TODO(shenchen):impl different rules, now we just don't split
+	// now only split by "*)"
+	List<String> splitExpr(String complexExpr) {
+		if (complexExpr == null) {
+			return null;
+		} 
 		List<String> ret = new ArrayList<String>();
-		ret.add(expr);
+		if (complexExpr.indexOf("*)") == -1) {// finds no "*)"
+			ret.add(complexExpr);
+			return ret;
+		}
+		int startPos = 0;
+		int symbolPos;
+		do{
+			symbolPos = complexExpr.indexOf("*)",startPos);
+			if(symbolPos != -1) {
+				ret.add(complexExpr.substring(startPos, symbolPos+2));
+			}
+			startPos = symbolPos + 2;
+		}while(symbolPos!=-1);
 		return ret;
 	}
+	
 	
 	// remember call this method when never use KernelLink
 	void close() {
@@ -106,9 +137,12 @@ public class FormulaCalculater {
 				System.out.println("Please enter expr:");
 				Scanner s = new Scanner(System.in);
 				String expr = s.nextLine();
-				String A = fc.calculateToString(expr, null);
+				System.out.println("Please enter sample:");
+				String sample = s.nextLine();
+				String A = fc.calculateToString(expr, sample);
 				//List<BigInteger> B = fc.calculateToList(expr, null);
 				System.out.println("Response: " + A);
+				System.out.println("------------------------");
 			}
 		} catch (MathLinkException e) {
 			System.out.println("MathLinkException occurred: " + e.getMessage());
