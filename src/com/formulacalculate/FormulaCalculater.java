@@ -35,7 +35,6 @@ public class FormulaCalculater {
 		}
 		List<List<BigInteger>> multiRet = new ArrayList<List<BigInteger>>();
 		for (String singleExpr : singleExprList) {
-			//TODO(shenchen): IMPORTANT: continues calculation may have different results,
 			multiRet.add(getFromSingleExpr(singleExpr));
 		}
 		// sample == null means don't compare and return first elem not null and not emtpy
@@ -73,6 +72,8 @@ public class FormulaCalculater {
 		String[] numStrArray = null;
 		List<BigInteger> numberList = null;
 		try {
+			kernelLink.evaluate("Remove[\"Global`*\"];");// this command cleans all env used before
+			kernelLink.discardAnswer();
 			kernelLink.evaluate(expr);
 			kernelLink.waitForAnswer();
 			numStrArray = kernelLink.getStringArray1();
@@ -113,13 +114,13 @@ public class FormulaCalculater {
 		}
 		int startPos = 0;
 		int symbolPos;
-		do{
-			symbolPos = complexExpr.indexOf("*)",startPos);
-			if(symbolPos != -1) {
-				ret.add(complexExpr.substring(startPos, symbolPos+2));
+		do {
+			symbolPos = complexExpr.indexOf("*)", startPos);
+			if (symbolPos != -1) {
+				ret.add(complexExpr.substring(startPos, symbolPos + 2));
 			}
 			startPos = symbolPos + 2;
-		}while(symbolPos!=-1);
+		} while (symbolPos != -1);
 		return ret;
 	}
 	
