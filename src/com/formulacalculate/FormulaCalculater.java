@@ -21,28 +21,68 @@ public class FormulaCalculater {
 		}
 	}
 	
-	// expr is the whole expr from webpage MATHEMATICA option
-	// we should split it and campare with sample, leave sample 
-	// null means don't compare
-	public String calculateToString(String expr, String sample) throws Exception{
+	// complexExpr is the whole expression from webpage MATHEMATICA option
+	// we should split it and compare each result from it with sample, 
+	// leave sample null means don't compare
+	public List<BigInteger> calculateToList(String complexExpr, String sample) throws Exception {
 		if (kernelLink == null) {
 			throw new Exception("KernelLink");
 		}
-		// handle expr
-		List<String> exprList = splitExpr(expr);
-		List<String> retList = new ArrayList<String>();
-		for (String e : exprList) {
-			retList.add(kernelLink.evaluateToOutputForm(e, 0));
+		List<String> singleExprList = splitExpr(complexExpr);
+		List<List<BigInteger>> multiRet = new ArrayList<List<BigInteger>>();
+		for (String singleExpr : singleExprList) {
+			multiRet.add(getFromSingleExpr(singleExpr));
 		}
-		
-		if (sample == null) {//don't compare and return first elem not null
-			for (String ret : retList) {
-				if (ret != null) return ret;
+		// sample == null means don't compare and return first elem not null and not emtpy
+		if (sample == null) {
+			for (List<BigInteger> singleRet : multiRet) {
+				if (singleRet != null && !singleRet.isEmpty()) return singleRet;
 			}
 		} else {
-			//TODO(shenchen):impl compare logic
+			// return the first one elem that matches sample
+			// convert sample to List<BigInteger>
+			sample = sample.trim();
+			String[] sampleNumbers = sample.split(", ");
+			List<BigInteger> sampleNumberList = new ArrayList<BigInteger>();
+			for (String s : sampleNumbers) {
+				sampleNumberList.add(new BigInteger(s));
+			}
+			for (List<BigInteger> singleRet : multiRet) {
+				if (compareTwoBigIntegerList(sampleNumberList, singleRet)) {
+					return singleRet;
+				}
+			}
 		}
 		return null;
+	}
+	
+	// call calculateToList and get the String form
+	public String calculateToString(String complexExpr, String sample) throws Exception{
+		return calculateToList(complexExpr, sample).toString();
+	}
+	
+	// only care about single expression and return its result
+	private List<BigInteger> getFromSingleExpr(String expr) throws MathLinkException {
+		kernelLink.evaluate(expr);
+		kernelLink.waitForAnswer();
+		String[] a = kernelLink.getStringArray1();
+		List<BigInteger> numberList = new ArrayList<BigInteger>();
+		for (String s : a) {
+			numberList.add(new BigInteger(s));
+		}
+		return numberList;
+	}
+
+	// compare prefix of two list
+	// TODO(shenchen): add one para to enable fuzzy matching
+	private boolean compareTwoBigIntegerList(List<BigInteger> sampleNumberList, List<BigInteger> singleRet) {
+		int sampleNumberListLength = sampleNumberList.size();
+		int singleRetLength = singleRet.size();
+		int minLength = Math.min(sampleNumberListLength, singleRetLength);
+		for (int i = 0; i <= minLength - 1; i++) {
+			if (sampleNumberList.get(i).equals(singleRet.get(i))) return false;
+		}
+		return true;
 	}
 	
 	// according to different rules, split expr and try
@@ -51,24 +91,6 @@ public class FormulaCalculater {
 		List<String> ret = new ArrayList<String>();
 		ret.add(expr);
 		return ret;
-	}
-	
-	public List<BigInteger> calculateToList(String expr, String sample) throws Exception {
-		String retStr = calculateToString(expr, sample);
-		// convert string to list
-		if (retStr == null || retStr.isEmpty()) {
-			return null;
-		}
-		String numberStr = retStr.substring(1, retStr.length()-1);
-		System.out.println(numberStr);
-		String[] numberStrList = numberStr.split(", ");
-		List<BigInteger> numberList = new ArrayList<BigInteger>();
-		for (String numStr : numberStrList) {
-			System.out.println(numStr);
-			BigInteger num = new BigInteger(numStr);
-			numberList.add(num);
-		}
-		return numberList;
 	}
 	
 	// remember call this method when never use KernelLink
@@ -85,7 +107,7 @@ public class FormulaCalculater {
 				Scanner s = new Scanner(System.in);
 				String expr = s.nextLine();
 				String A = fc.calculateToString(expr, null);
-				//List<BigInteger> B = fc.calculateToList(expr);
+				//List<BigInteger> B = fc.calculateToList(expr, null);
 				System.out.println("Response: " + A);
 			}
 		} catch (MathLinkException e) {
