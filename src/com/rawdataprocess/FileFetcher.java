@@ -8,6 +8,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.io.*;
 
+import com.util.Util;
+
 
 public class FileFetcher extends Thread{
 	int startID;
