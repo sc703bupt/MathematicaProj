@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import com.util.Constant;
 import com.util.Util;
 
 
@@ -15,17 +16,13 @@ public class FileParser extends Thread {
 	private FileWriter sampleDataFileWriter;
 	private FileWriter expressionFileWriter;
 	
-	final String sampleFilePathPrefix = "D:\\sample\\data";
-	final String expressionFilePathPrefix = "D:\\expr\\expr";
-	final String parseLogPath = "D:\\parseLog\\";
-	
 	FileParser(String filePath, int startID, int endID){
 		this.filePath = filePath;
 		this.startID = startID;
 		this.endID = endID;
 		
-		String sampleDataFile = sampleFilePathPrefix + new Integer(startID / 10000).toString();
-		String expressionFile = expressionFilePathPrefix + new Integer(startID / 10000).toString();
+		String sampleDataFile = Constant.SAMPLE_FILE_SAVE_PATH_PREFIX + new Integer(startID / 10000).toString();
+		String expressionFile = Constant.EXPRESSION_FILE_SAVE_PATH_PREFIX + new Integer(startID / 10000).toString();
 		try {
 			sampleDataFileWriter = new FileWriter(new File(sampleDataFile), true);
 			expressionFileWriter = new FileWriter(new File(expressionFile), true);
@@ -42,7 +39,7 @@ public class FileParser extends Thread {
 		File logFile = null;
 		FileWriter fw = null;
 		try {
-			logFile = new File(parseLogPath + new Integer(startID/10000).toString());
+			logFile = new File(Constant.FILE_PARSER_LOG_SAVE_PATH_PREFIX + new Integer(startID/10000).toString());
 			if (!logFile.exists()) {
 				logFile.createNewFile();
 			}
@@ -83,7 +80,6 @@ public class FileParser extends Thread {
 			sampleDataFileWriter.close();
 			expressionFileWriter.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -93,8 +89,7 @@ public class FileParser extends Thread {
     }
 	
 	public ParseResult parseFile(int fileID) {
-		int idLength = 6;
-		String fileFullName = Util.getFileNameFromID(fileID, idLength);
+		String fileFullName = Util.getIndexFromID(fileID);
 		String fileName = filePath + fileFullName;
 		File file = new File(fileName);
         BufferedReader reader = null;

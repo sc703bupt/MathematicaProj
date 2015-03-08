@@ -4,16 +4,16 @@ import java.math.BigInteger;
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
+
+import com.util.Constant;
 import com.wolfram.jlink.*;
 
 public class FormulaCalculater {
 	private KernelLink kernelLink;
 	public FormulaCalculater() {
-		String jLinkDir = "c:\\Program Files\\Wolfram Research\\Mathematica\\9.0\\SystemFiles\\Links\\JLink";
-		System.setProperty("com.wolfram.jlink.libdir", jLinkDir);
-		String argv = new String("-linkmode launch -linkname 'c:\\Program Files\\Wolfram Research\\Mathematica\\9.0\\mathkernel.exe'");
+		System.setProperty("com.wolfram.jlink.libdir", Constant.JLINK_DIR);
 		try {
-			kernelLink = MathLinkFactory.createKernelLink(argv);
+			kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
 			kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
 		} catch (MathLinkException e) {
 			System.out.println("Fatal error opening link: " + e.getMessage());
@@ -24,13 +24,12 @@ public class FormulaCalculater {
 	// complexExpr is the whole expression from webpage MATHEMATICA option
 	// we should split it and compare each result from it with sample, 
 	// leave sample null means don't compare
-	public List<BigInteger> calculateToList(String complexExpr, String sample) throws Exception {
+	public List<BigInteger> calculateToList(List<String> singleExprList, String sample) throws Exception {
 		if (kernelLink == null) {
 			throw new Exception("KernelLink");
 		}
-		List<String> singleExprList = splitExpr(complexExpr);
 		if (singleExprList == null || singleExprList.isEmpty()) {
-			System.out.println("failed to split complex expr and get nothing.");
+			System.out.println("single expression list is null or empty.");
 			return null;
 		}
 		List<List<BigInteger>> multiRet = new ArrayList<List<BigInteger>>();
@@ -46,7 +45,7 @@ public class FormulaCalculater {
 			// return the first one elem that matches sample
 			// convert sample to List<BigInteger>
 			sample = sample.trim();
-			String[] sampleNumbers = sample.split(",");
+			String[] sampleNumbers = sample.split(", ");
 			List<BigInteger> sampleNumberList = new ArrayList<BigInteger>();
 			for (String sampleNumber : sampleNumbers) {
 				sampleNumberList.add(new BigInteger(sampleNumber.trim()));
@@ -61,8 +60,8 @@ public class FormulaCalculater {
 	}
 	
 	// call calculateToList and get the String form
-	public String calculateToString(String complexExpr, String sample) throws Exception{
-		List<BigInteger> retList =  calculateToList(complexExpr, sample);
+	public String calculateToString(List<String> singleExprList, String sample) throws Exception{
+		List<BigInteger> retList =  calculateToList(singleExprList, sample);
 		if (retList == null) return null;
 		return retList.toString();
 	}
@@ -103,6 +102,7 @@ public class FormulaCalculater {
 	
 	// according to different rules, split expr and try
 	// now only split by "*)"
+	@Deprecated
 	List<String> splitExpr(String complexExpr) {
 		if (complexExpr == null) {
 			return null;
@@ -140,7 +140,9 @@ public class FormulaCalculater {
 				String expr = s.nextLine();
 				System.out.println("Please enter sample:");
 				String sample = s.nextLine();
-				String A = fc.calculateToString(expr, sample);
+				List<String> exprList = new ArrayList<String>();
+				exprList.add(expr);
+				String A = fc.calculateToString(exprList, sample);
 				//List<BigInteger> B = fc.calculateToList(expr, null);
 				System.out.println("Response: " + A);
 				System.out.println("------------------------");

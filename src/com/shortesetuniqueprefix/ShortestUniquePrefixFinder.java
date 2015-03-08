@@ -4,16 +4,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.List;
 import java.util.Map;
 import com.util.*;
 
 public class ShortestUniquePrefixFinder {
 	private String absOutputFolderName;
-	private int levelForDivide;
 	
 	public ShortestUniquePrefixFinder(String absOutputFolderName, int levelForDivide) {
 		this.absOutputFolderName = absOutputFolderName;
-		this.levelForDivide = levelForDivide;
 	}
 	
 	/* Step 1: combine two source files and divide data into several folders/files
@@ -59,7 +59,7 @@ public class ShortestUniquePrefixFinder {
 	private Map.Entry<File, Integer> combineAndDivide(BufferedReader sampleFileReader, 
 			BufferedReader exprFileReader) {
 		for (int i = 1; i <= Constant.TOTAL_PAGES_COUNT; i++) {	
-			//String
+			//TODO(shenchen): impl
 		}
 		return null;
 	}

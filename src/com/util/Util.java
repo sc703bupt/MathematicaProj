@@ -7,11 +7,10 @@ import java.io.IOException;
 import java.util.List;
 
 public class Util {
-	public static String getFileNameFromID(int id, int idLength) {
-		// TODO Auto-generated method stub
+	public static String getIndexFromID(int id) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(id);
-		for (int i = sb.length(); i < idLength; i++) {
+		for (int i = sb.length(); i < Constant.INDEX_WIDTH; i++) {
 			sb.insert(0, "0");
 		}
 		sb.insert(0, 'A');

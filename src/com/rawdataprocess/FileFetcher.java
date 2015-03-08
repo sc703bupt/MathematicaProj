@@ -8,12 +8,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.io.*;
 
+import com.util.Constant;
 import com.util.Util;
 
 
 public class FileFetcher extends Thread{
-	int startID;
-	int endID;
+	private int startID;
+	private int endID;
 	FileFetcher(int startID, int endID) {
 		this.startID = startID;
 		this.endID = endID;
@@ -30,7 +31,6 @@ public class FileFetcher extends Thread{
 		try {
 			url = new URL(httpUrl);
 		} catch (MalformedURLException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			return false;
 		}
@@ -55,14 +55,11 @@ public class FileFetcher extends Thread{
     }
 	
 	public void fetchAllFiles() {		
-		String urlPrefix = "http://oeis.org/";
-		int idLength = 6;
-				
-		String savedFilePathPrefix = "D:\\download1\\";
+
 		File logFile = null;
 		FileWriter fw = null;
 		try {
-			logFile = new File(savedFilePathPrefix + new Integer(startID/10000).toString());
+			logFile = new File(Constant.WEB_PAGE_SAVE_PATH_PREFIX + new Integer(startID/10000).toString());
 			if (!logFile.exists()) {
 				logFile.createNewFile();
 			}
@@ -73,9 +70,9 @@ public class FileFetcher extends Thread{
 		}
 		
 		for (int i = startID; i <= endID; i++){
-			String fileName = Util.getFileNameFromID(i, idLength);
-			String httpUrl = urlPrefix + fileName;
-			String savedFilePath = savedFilePathPrefix + fileName;
+			String fileName = Util.getIndexFromID(i);
+			String httpUrl = Constant.OEIS_URL_PREFIX + fileName;
+			String savedFilePath = Constant.WEB_PAGE_SAVE_PATH_PREFIX + fileName;
 			boolean isGood = FileFetcher.httpDownload(httpUrl, savedFilePath);
 			try {
 				if(isGood) {
@@ -92,7 +89,6 @@ public class FileFetcher extends Thread{
 		try {
 			fw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
