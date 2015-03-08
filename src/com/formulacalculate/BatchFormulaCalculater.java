@@ -23,7 +23,6 @@ public class BatchFormulaCalculater {
 		this.endID = endID > Constant.TOTAL_PAGES_COUNT ? Constant.TOTAL_PAGES_COUNT : endID;
 	}
 	
-	// TODO(shenchen):expr not found case impl
 	public void batchCalculate() throws Exception {
 		File sampleFile = new File(Constant.SAMPLE_FILE_PATH);
 		File exprFile = new File(Constant.EXPRESSION_FILE_PATH);
@@ -40,59 +39,56 @@ public class BatchFormulaCalculater {
 		
 		FormulaCalculater fc = new FormulaCalculater();
 		
-		String previousExpr = null;
-		
-		for (int i = startID; i <= endID; i++) {	
-			String index = Util.getIndexFromID(i);
-			String sample = getSampleByIndex(sampleFileBufferedReader, index);
-			Map.Entry<List<String>, String> ret = getExprListByIndex(exprFileBufferedReader, index, previousExpr);
-			List<String> exprList = ret.getKey();
-			previousExpr = ret.getValue(); // for next iteration
-			String calculatedResult = fc.calculateToString(exprList, sample); // get result calculated by formula
-			formulaCalculatedFileWriter.write(index + ":" + calculatedResult);
+		// find the first one exceed startID in sample file
+		String sampleItem = null;
+		while ((sampleItem = sampleFileBufferedReader.readLine()) != null) {
+			if (Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1)) >= startID) {
+				break;
+			}
 		}
+
+		// find the first one exceed startID in expression file
+		String exprItem = null;
+		while ((exprItem = exprFileBufferedReader.readLine()) != null) {
+			if (Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1)) >= startID) {
+				break;
+			}
+		}
+
+		// 2-way merge
+		int sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
+		int exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
+		while(sampleItem != null && exprItem != null && sampleItemID <= endID && exprItemID <= endID) {
+			if (sampleItemID == exprItemID) {
+				List<String> exprList = new ArrayList<String>();
+				exprList.add(exprItem.substring(Constant.INDEX_WIDTH + 2));
+				while ((exprItem = exprFileBufferedReader.readLine()) != null) {
+					int newExprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
+					if (newExprItemID != sampleItemID) {
+						break;
+					}
+					exprList.add(exprItem.substring(Constant.INDEX_WIDTH + 2));
+				}
+				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)); // get result calculated by formula
+				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult);
+			} else if (sampleItemID > exprItemID) {
+				exprItem = exprFileBufferedReader.readLine();
+			} else {
+				formulaCalculatedFileWriter.write(sampleItem);// find no expr, use sample itself
+				sampleItem = sampleFileBufferedReader.readLine();
+			}
+			sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
+			exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
+		}
+		
+		// close
 		sampleFileBufferedReader.close();
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
-	}
-	
-	// return null means EOF, while empty list means NOT FOUND
-	// NOTE: we suppose the sample file contains all index we want, otherwise this method will throw exception
-	private String getSampleByIndex(BufferedReader br, String index) throws Exception {
-		String item = br.readLine();
-		if (item == null) {
-			return null;
-		}
-		if (!item.startsWith(index)) {
-			throw new Exception(index + " is not found, please check the sample file.");
-		}
-		String sample = item.substring(Constant.INDEX_WIDTH + 2);
-		return sample;
-	}
-	
-	// the value in the entry is the item for next index, because we will always read next line to see
-	// whether there are more expressions or not
-	private Map.Entry<List<String>, String> getExprListByIndex(BufferedReader br, String index, String previousExpr) throws IOException {
-		List<String> exprList = new ArrayList<String>();
-		if (previousExpr != null) {
-			exprList.add(previousExpr);
-		}
-		Map.Entry<List<String>, String> entry = null;
-		String expr = null;
-        while ((expr = br.readLine()) != null) {
-        	if (expr.startsWith(index)) {
-        		exprList.add(expr.substring(Constant.INDEX_WIDTH + 2));
-        	} else {
-        		entry = new AbstractMap.SimpleEntry(exprList, expr.substring(Constant.INDEX_WIDTH + 2));
-        		break;
-        	}
-        }  
-        return entry;
 	}
 	
 	public static void main(String[] args) throws Exception {
 		BatchFormulaCalculater bfc = new BatchFormulaCalculater(1, 1); 
 		bfc.batchCalculate();
 	}
-
 }

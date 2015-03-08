@@ -27,7 +27,6 @@ public class FileParser extends Thread {
 			sampleDataFileWriter = new FileWriter(new File(sampleDataFile), true);
 			expressionFileWriter = new FileWriter(new File(expressionFile), true);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -17,6 +17,15 @@ public class Util {
 		return sb.toString();
 	}
 	
+	public static int getIDFromIndex(String index) {
+		for (int i = 1; i <= index.length()-1; i++) {
+			if (index.charAt(i) != '0') {
+				return new Integer(index.substring(i)).intValue();
+			}
+		}
+		return 0;
+	}
+	
 	public static void write(FileWriter writer, String content) {          
         try {               
         	writer.write(content);               

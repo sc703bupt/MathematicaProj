@@ -63,7 +63,8 @@ public class FormulaCalculater {
 	public String calculateToString(List<String> singleExprList, String sample) throws Exception{
 		List<BigInteger> retList =  calculateToList(singleExprList, sample);
 		if (retList == null) return null;
-		return retList.toString();
+		String retListStr = retList.toString();
+		return retListStr.substring(1, retListStr.length()-1);
 	}
 	
 	// only care about single expression and return its result
