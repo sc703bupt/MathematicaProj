@@ -9,9 +9,11 @@ import com.util.*;
 
 public class ShortestUniquePrefixFinder {
 	private String absOutputFolderName;
+	private int levelForDivide;
 	
-	public ShortestUniquePrefixFinder(String absOutputFolderName) {
+	public ShortestUniquePrefixFinder(String absOutputFolderName, int levelForDivide) {
 		this.absOutputFolderName = absOutputFolderName;
+		this.levelForDivide = levelForDivide;
 	}
 	
 	/* Step 1: combine two source files and divide data into several folders/files
@@ -25,14 +27,19 @@ public class ShortestUniquePrefixFinder {
 		File absOutputFolder = new File(absOutputFolderName);
 		
 		if (absOutputFolder.exists()) {
-			if (isOutputOverride) {
-				//TODO
+			if (!absOutputFolder.isDirectory()) {
+				throw new IOException("absOutputFolderName is not folder.");
 			}
+			if (isOutputOverride) {
+				Util.delFolder(absOutputFolder.getAbsolutePath());
+			} else {
+				throw new IOException("Diretory \"" + absOutputFolderName + 
+						"\" absOutputFolderName is exist.");
+			}
+		} else {
+			absOutputFolder.mkdirs();
 		}
-		if (!absOutputFolder.isDirectory()) {
-			throw new IOException("absOutputFolderName is not folder.");
-		}
-		
+
 		if (absSampleFileName == null || absExprFileName == null ||
 			absSampleFileName.isEmpty() || absExprFileName.isEmpty()) {
 			throw new IOException("sampleFileName or exprFileName is null or empty.");
@@ -44,13 +51,13 @@ public class ShortestUniquePrefixFinder {
 		BufferedReader sampleFileReader = new BufferedReader(new FileReader(sampleFile));
 		BufferedReader exprFileReader = new BufferedReader(new FileReader(exprFile));
 		// combine and divide
-		Map.Entry<File, Integer> result = combineAndDivide(sampleFileReader, exprFileReader, 3);
+		Map.Entry<File, Integer> result = combineAndDivide(sampleFileReader, exprFileReader);
 		return result.getValue();
 	}
 	
 	
 	private Map.Entry<File, Integer> combineAndDivide(BufferedReader sampleFileReader, 
-			BufferedReader exprFileReader, int levelForDivide) {
+			BufferedReader exprFileReader) {
 		for (int i = 1; i <= Constant.TOTAL_PAGES_COUNT; i++) {	
 			//String
 		}
@@ -58,7 +65,7 @@ public class ShortestUniquePrefixFinder {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		ShortestUniquePrefixFinder supf = new ShortestUniquePrefixFinder("c:\\rootFolder");
+		ShortestUniquePrefixFinder supf = new ShortestUniquePrefixFinder("c:\\rootFolder", 3);
 		System.out.println(supf.find("", "", true));
 	}
 }

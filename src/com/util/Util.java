@@ -46,43 +46,30 @@ public class Util {
 	}
 	
 	// delete all sub-files and sub-folders, then the folder itself
-    public static void delFolder(String absFolderName) {
-    	try {
-    		delAllFile(absFolderName);
-    		File myFilePath = new File(absFolderName);
-    		myFilePath.delete();
-    	} catch (Exception e) {
-    		e.printStackTrace(); 
-    	}
-    }
-
-    // called by delFolder
-	private static void delAllFile(String absFolderName) throws IOException {
+	// Note: it works well for inputing a single file name
+	public static void delFolder(String absFolderName) throws IOException {
 	    File file = new File(absFolderName);
-	    if (!file.exists() || !file.isDirectory()) {
-	    	throw new IOException("absFolderName is not exist or not a directory name.");
+	    if (!file.exists()) {
+	    	throw new IOException("not exist.");
 	    }
-	    String[] fileList = file.list();
-	    File absFile = null;
-	    for (int i = 0; i <= fileList.length-1; i++) {
-	    	// generate absFile
-	    	if (absFolderName.endsWith("\\")) {
-	    		absFile = new File(absFolderName + fileList[i]);
-	        } else {
-	        	absFile = new File(absFolderName + "\\" + fileList[i]);
-	        }
-	    	
-	    	// if single file, just delete
-	        if (absFile.isFile()) {
-	        	absFile.delete();
-	        	continue;
-	        }
-	        
-	        // if directory, recursively delete
-	        if (absFile.isDirectory()) {
-	        	delAllFile(absFolderName + "\\" + fileList[i]);
-	            delFolder(absFolderName + "\\" + fileList[i]);
-	        }
+	    if (file.isFile()) {
+	    	file.delete();
+	    	return;
 	    }
+	    if (file.isDirectory()) {
+	    	String[] fileList = file.list();
+	 	    for (int i = 0; i <= fileList.length-1; i++) {
+	 	    	// generate absFileName
+	 	    	String absFileName;
+	 	    	if (absFolderName.endsWith("\\")) {
+	 	    		absFileName = absFolderName + fileList[i];
+	 	        } else {
+	 	        	absFileName = absFolderName + "\\" + fileList[i];
+	 	        }
+	 	    	delFolder(absFileName);
+	 	    }
+	 	    file.delete();
+	    }
+	    return;
 	}
 }
