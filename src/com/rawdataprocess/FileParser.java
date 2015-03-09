@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.util.Constant;
+import com.config.Config;
 import com.util.Util;
 
 
@@ -15,17 +15,43 @@ public class FileParser extends Thread {
 	private int endID;
 	private FileWriter sampleDataFileWriter;
 	private FileWriter expressionFileWriter;
-	
-	FileParser(String filePath, int startID, int endID){
-		this.filePath = filePath;
+	private FileWriter logFileWriter;
+			
+	FileParser(int startID, int endID){
+		this.filePath = Config.getWEB_PAGE_SAVE_PATH_PREFIX();
 		this.startID = startID;
 		this.endID = endID;
-		
-		String sampleDataFile = Constant.SAMPLE_FILE_SAVE_PATH_PREFIX + new Integer(startID / 10000).toString();
-		String expressionFile = Constant.EXPRESSION_FILE_SAVE_PATH_PREFIX + new Integer(startID / 10000).toString();
+	}
+	
+	void init () {
+		String sampleDataFile = Config.getSAMPLE_FILE_SAVE_PATH_PREFIX() + this.getName();
+		String expressionFile = Config.getEXPRESSION_FILE_SAVE_PATH_PREFIX() + this.getName();
 		try {
 			sampleDataFileWriter = new FileWriter(new File(sampleDataFile), true);
 			expressionFileWriter = new FileWriter(new File(expressionFile), true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		File logFile = null;
+		try {
+			logFile = new File(Config.getFILE_PARSER_LOG_SAVE_PATH_PREFIX() + this.getName());
+			if (!logFile.exists()) {
+				logFile.createNewFile();
+			}
+			
+			logFileWriter = new FileWriter(logFile, true);
+		} catch (IOException e) {
+			System.out.println(e.toString());
+		}
+	}
+	
+	
+	void finalizeFunc() {
+		try {
+			logFileWriter.close();
+			sampleDataFileWriter.close();
+			expressionFileWriter.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -34,53 +60,37 @@ public class FileParser extends Thread {
 	public void run() {
 		parseAllFiles();
 	}
+	
 	public void parseAllFiles(){
-		File logFile = null;
-		FileWriter fw = null;
-		try {
-			logFile = new File(Constant.FILE_PARSER_LOG_SAVE_PATH_PREFIX + new Integer(startID/10000).toString());
-			if (!logFile.exists()) {
-				logFile.createNewFile();
-			}
-			
-			fw = new FileWriter(logFile, true);
-		} catch (IOException e) {
-			System.out.println(e.toString());
-		}
-		
+		init();
+				
 		for (int i = startID; i <= endID; i++){
 			ParseResult res = parseFile(i);
 			try {
 				switch (res) {
 				case SAMPLE_AND_MATHEMATICA:
-					fw.write(new Integer(i).toString() + " : " + "has sample and expression\n");
+					logFileWriter.write(new Integer(i).toString() + " : " + "has sample and expression\n");
 					break;
 				case FORMATERROR:
-					fw.write(new Integer(i).toString() + " : " + "file format error\n");
+					logFileWriter.write(new Integer(i).toString() + " : " + "file format error\n");
 					break;
 				case READFAIL:
-					fw.write(new Integer(i).toString() + " : " + "failed when reading file\n");
+					logFileWriter.write(new Integer(i).toString() + " : " + "failed when reading file\n");
 					break;
 				case NO_MATHEMATICA:
-					fw.write(new Integer(i).toString() + " : " + "has no expression\n");
+					logFileWriter.write(new Integer(i).toString() + " : " + "has no expression\n");
 					break;
 				case NO_SAMPLE_AND_MATHEMATICA:
-					fw.write(new Integer(i).toString() + " : " + "has no sample and expression\n");
+					logFileWriter.write(new Integer(i).toString() + " : " + "has no sample and expression\n");
 					break;
 				}
-				fw.flush();
+				logFileWriter.flush();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 		
-		try {
-			fw.close();
-			sampleDataFileWriter.close();
-			expressionFileWriter.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		finalizeFunc();
 	}
 	
 	public enum ParseResult {
@@ -97,7 +107,7 @@ public class FileParser extends Thread {
             String tempString = null;    
             
             //------Get sample data------
-            String sampleMarker = "<table cellspacing=\"0\" cellpadding=\"2\" cellborder=\"0\">"; 
+            final String sampleMarker = "<table cellspacing=\"0\" cellpadding=\"2\" cellborder=\"0\">"; 
             while ((tempString = reader.readLine()) != null) {
             	if(tempString.indexOf(sampleMarker) != -1) {
             		break;
@@ -115,8 +125,8 @@ public class FileParser extends Thread {
             }
             
             String sample = null;             
-            String startTag = "<tt>";
-            String endTag = "</tt>";
+            final String startTag = "<tt>";
+            final String endTag = "</tt>";
             int sampleStartIndex = tempString.indexOf(startTag);
             boolean hasSample = true;
             if (sampleStartIndex == -1) {
@@ -159,7 +169,7 @@ public class FileParser extends Thread {
             	int expressionStartIndex = tempString.indexOf(startTag);
             	expression = tempString.substring(expressionStartIndex + startTag.length()).trim();
             	expression = expression.substring(0, expression.length() - endTag.length());
-            	//System.out.println(expression);
+            	expression = SpecialSymbolReplacer.replaceSpecialSymbol(expression);
             	Util.write(expressionFileWriter, fileFullName + ":" + expression + "\n"); 
             	
             	//find next MATHEMATICA

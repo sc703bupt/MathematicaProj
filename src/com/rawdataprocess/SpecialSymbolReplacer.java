@@ -23,16 +23,21 @@ public class SpecialSymbolReplacer {
 		FileWriter replacedExprFileWriter = new FileWriter(replacedExprFile);
 		String exprItem = null;
 		while ((exprItem = exprFileBufferedReader.readLine()) != null) {
-			exprItem = exprItem.replaceAll("&lt;","<");
-			exprItem = exprItem.replaceAll("&gt;",">");
-			exprItem = exprItem.replaceAll("&amp;","&");
-			exprItem = exprItem.replaceAll("&nbsp;"," ");
-			exprItem = exprItem.replaceAll("&quot;","\"");
+			exprItem = replaceSpecialSymbol(exprItem);
 			replacedExprFileWriter.write(exprItem + "\n");
 		}
 		exprFileBufferedReader.close();
 		replacedExprFileWriter.close();
 		return replaceCountMap;
+	}
+	
+	public static String replaceSpecialSymbol(String str) {
+		str = str.replaceAll("&lt;","<");
+		str = str.replaceAll("&gt;",">");
+		str = str.replaceAll("&amp;","&");
+		str = str.replaceAll("&nbsp;"," ");
+		str = str.replaceAll("&quot;","\"");
+		return str;
 	}
 	
 	public static void main(String[] args) throws IOException {
