@@ -51,6 +51,7 @@ public class BatchFormulaCalculater {
 		}
 
 		// 2-way merge
+		int FailedCalculateItemcount = 0;
 		int lastWrittenSampleID = -1;
 		int sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
 		int exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
@@ -67,6 +68,9 @@ public class BatchFormulaCalculater {
 				}
 				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)
 						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1)); // get result calculated by formula
+				if (calculatedResult == null) {
+					FailedCalculateItemcount++;
+				}
 				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult + "\n");
 				lastWrittenSampleID = sampleItemID;
 			} else if (sampleItemID > exprItemID) {
@@ -86,10 +90,13 @@ public class BatchFormulaCalculater {
 		sampleFileBufferedReader.close();
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
+		
+		System.out.println("Total failed item count:" + FailedCalculateItemcount + 
+				" ratio:" + (1.0 * FailedCalculateItemcount) / (endID - startID + 1));
 	}
 	
 	public static void main(String[] args) throws Exception {
-		BatchFormulaCalculater bfc = new BatchFormulaCalculater(1, 20); 
+		BatchFormulaCalculater bfc = new BatchFormulaCalculater(1, 100); 
 		bfc.batchCalculate();
 	}
 }

@@ -97,9 +97,12 @@ public class FormulaCalculater {
 			kernelLink.discardAnswer();
 			kernelLink.evaluate(expr);
 			kernelLink.waitForAnswer();
+			int type = kernelLink.getNext();
 			numStrArray = kernelLink.getStringArray1();
 			numberList = new ArrayList<BigInteger>();
 		} catch (MathLinkException e) {
+			kernelLink.clearError();
+			kernelLink.newPacket();
 			return null;
 		}
 		for (String numStr : numStrArray) {
@@ -120,31 +123,6 @@ public class FormulaCalculater {
 		return true;
 	}
 	
-	// according to different rules, split expr and try
-	// now only split by "*)"
-	@Deprecated
-	List<String> splitExpr(String complexExpr) {
-		if (complexExpr == null) {
-			return null;
-		} 
-		List<String> ret = new ArrayList<String>();
-		if (complexExpr.indexOf("*)") == -1) {// finds no "*)"
-			ret.add(complexExpr);
-			return ret;
-		}
-		int startPos = 0;
-		int symbolPos;
-		do {
-			symbolPos = complexExpr.indexOf("*)", startPos);
-			if (symbolPos != -1) {
-				ret.add(complexExpr.substring(startPos, symbolPos + 2));
-			}
-			startPos = symbolPos + 2;
-		} while (symbolPos != -1);
-		return ret;
-	}
-	
-	
 	// remember call this method when never use KernelLink
 	void close() {
 		kernelLink.close();
@@ -163,7 +141,6 @@ public class FormulaCalculater {
 				List<String> exprList = new ArrayList<String>();
 				exprList.add(expr);
 				String A = fc.calculateToString(exprList, sample, "testIndex");
-				//List<BigInteger> B = fc.calculateToList(expr, null);
 				System.out.println("Response: " + A);
 				System.out.println("------------------------");
 			}
