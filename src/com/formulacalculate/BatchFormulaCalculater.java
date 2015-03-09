@@ -20,7 +20,7 @@ public class BatchFormulaCalculater {
 	
 	public void batchCalculate() throws Exception {
 		File sampleFile = new File(Constant.SAMPLE_FILE_PATH);
-		File exprFile = new File(Constant.EXPRESSION_FILE_PATH);
+		File exprFile = new File(Constant.REPLACED_EXPRESSION_FILE_PATH);
 		BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
 		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
 		
@@ -51,6 +51,7 @@ public class BatchFormulaCalculater {
 		}
 
 		// 2-way merge
+		int lastWrittenSampleID = -1;
 		int sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
 		int exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
 		while(sampleItem != null && exprItem != null && sampleItemID <= endID && exprItemID <= endID) {
@@ -67,11 +68,14 @@ public class BatchFormulaCalculater {
 				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)
 						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1)); // get result calculated by formula
 				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult + "\n");
+				lastWrittenSampleID = sampleItemID;
 			} else if (sampleItemID > exprItemID) {
 				exprItem = exprFileBufferedReader.readLine();
 			} else {
-				// TODO(shenchen): fix duplicate output bug
-				formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself
+				if (lastWrittenSampleID != sampleItemID) {
+					formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself	
+					lastWrittenSampleID = sampleItemID;
+				}	
 				sampleItem = sampleFileBufferedReader.readLine();
 			}
 			sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
