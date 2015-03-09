@@ -4,13 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import com.util.Constant;
 import com.util.Util;
 
@@ -69,12 +64,14 @@ public class BatchFormulaCalculater {
 					}
 					exprList.add(exprItem.substring(Constant.INDEX_WIDTH + 2));
 				}
-				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)); // get result calculated by formula
-				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult);
+				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)
+						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1)); // get result calculated by formula
+				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult + "\n");
 			} else if (sampleItemID > exprItemID) {
 				exprItem = exprFileBufferedReader.readLine();
 			} else {
-				formulaCalculatedFileWriter.write(sampleItem);// find no expr, use sample itself
+				// TODO(shenchen): fix duplicate output bug
+				formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself
 				sampleItem = sampleFileBufferedReader.readLine();
 			}
 			sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
@@ -88,7 +85,7 @@ public class BatchFormulaCalculater {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		BatchFormulaCalculater bfc = new BatchFormulaCalculater(1, 1); 
+		BatchFormulaCalculater bfc = new BatchFormulaCalculater(1, 20); 
 		bfc.batchCalculate();
 	}
 }

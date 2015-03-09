@@ -9,10 +9,12 @@ public class Constant {
 	public final static String KENERL_ARGV = "-linkmode launch -linkname 'c:\\Program Files\\Wolfram Research\\Mathematica\\9.0\\mathkernel.exe'";
 	public final static String WEB_PAGE_SAVE_PATH_PREFIX = "D:\\download1\\";
 	public final static String SAMPLE_FILE_SAVE_PATH_PREFIX = "D:\\sample\\data";
-	public final static String EXPRESSION_FILE_SAVE_PATH_PREFIX = "D:\\expr\\expr";
+	public final static String EXPRESSION_FILE_SAVE_PATH_PREFIX = "D:\\expr\\replaceExpr";
 	public final static String SAMPLE_FILE_PATH = "C:\\MyEclipseProj\\MathematicaProj\\data\\sample";
 	public final static String EXPRESSION_FILE_PATH = "C:\\MyEclipseProj\\MathematicaProj\\data\\expression";
+	public final static String REPLACED_EXPRESSION_FILE_PATH = "C:\\test\\replaceExpr";
 	public final static String FILE_PARSER_LOG_SAVE_PATH_PREFIX = "D:\\parseLog\\";
 	public final static String FORMULA_CALCULATED_SAVE_PATH = "C:\\test\\FormulaCalculated";
+	public final static String FORMULA_CALCULATE_LOG_PATH_PREFIX = "C:\\test\\";
 	public final static String FINAL_OUTPUT_SAVE_PATH = "D:\\FinalOutput";
 }

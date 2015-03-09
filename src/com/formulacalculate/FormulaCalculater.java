@@ -1,5 +1,7 @@
 package com.formulacalculate;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.math.BigInteger;
 import java.util.Scanner;
 import java.util.List;
@@ -24,44 +26,63 @@ public class FormulaCalculater {
 	// complexExpr is the whole expression from webpage MATHEMATICA option
 	// we should split it and compare each result from it with sample, 
 	// leave sample null means don't compare
-	public List<BigInteger> calculateToList(List<String> singleExprList, String sample) throws Exception {
+	public List<BigInteger> calculateToList(List<String> singleExprList, String sample, String index) throws Exception {
+		File logFile = new File(Constant.FORMULA_CALCULATE_LOG_PATH_PREFIX + index);
+		if (logFile.exists()) {
+			logFile.delete();
+		}
+		logFile.createNewFile();
+		FileWriter logFileWriter = new FileWriter(logFile);
+		
 		if (kernelLink == null) {
+			logFileWriter.write("KenerLink is null.\n");
+			logFileWriter.close();
 			throw new Exception("KernelLink");
 		}
 		if (singleExprList == null || singleExprList.isEmpty()) {
-			System.out.println("single expression list is null or empty.");
+			logFileWriter.write("singelExprList is null or empty.\n");
+			logFileWriter.close();
 			return null;
 		}
-		List<List<BigInteger>> multiRet = new ArrayList<List<BigInteger>>();
+		
+		logFileWriter.write("For index " + index + "\n");
+		logFileWriter.write("Number of expressions: " + new Integer(singleExprList.size()) + "\n");
+		
+		// covert sample to List<BigInteger>
+		sample = sample.trim();
+		String[] sampleNumbers = sample.split(", ");
+		List<BigInteger> sampleNumberList = new ArrayList<BigInteger>();
+		for (String sampleNumber : sampleNumbers) {
+			sampleNumberList.add(new BigInteger(sampleNumber.trim()));
+		}
+		
 		for (String singleExpr : singleExprList) {
-			multiRet.add(getFromSingleExpr(singleExpr));
+			List<BigInteger> singleRet = getFromSingleExpr(singleExpr);
+			if (singleRet == null) {
+				logFileWriter.write("failed to calculate: " + singleExpr + "\n");
+				continue;
+			}
+			if (singleRet.isEmpty()) {
+				logFileWriter.write("success to calculate but get empty result: " + 
+						singleExpr + "\n");
+				continue;
+			}
+			if (!compareTwoBigIntegerList(sampleNumberList, singleRet)) {
+				logFileWriter.write("success to calculate but inconsistent with sample: " + 
+						singleExpr + "\n");
+				continue;
+			}
+			logFileWriter.write("success to calculate: " + singleExpr + "\n");
+			logFileWriter.close();
+			return singleRet;
 		}
-		// sample == null means don't compare and return first elem not null and not emtpy
-		if (sample == null || sample.isEmpty()) {
-			for (List<BigInteger> singleRet : multiRet) {
-				if (singleRet != null && !singleRet.isEmpty()) return singleRet;
-			}
-		} else {
-			// return the first one elem that matches sample
-			// convert sample to List<BigInteger>
-			sample = sample.trim();
-			String[] sampleNumbers = sample.split(", ");
-			List<BigInteger> sampleNumberList = new ArrayList<BigInteger>();
-			for (String sampleNumber : sampleNumbers) {
-				sampleNumberList.add(new BigInteger(sampleNumber.trim()));
-			}
-			for (List<BigInteger> singleRet : multiRet) {
-				if (compareTwoBigIntegerList(sampleNumberList, singleRet)) {
-					return singleRet;
-				}
-			}
-		}
+		logFileWriter.close();
 		return null;
 	}
 	
 	// call calculateToList and get the String form
-	public String calculateToString(List<String> singleExprList, String sample) throws Exception{
-		List<BigInteger> retList =  calculateToList(singleExprList, sample);
+	public String calculateToString(List<String> singleExprList, String sample, String index) throws Exception{
+		List<BigInteger> retList =  calculateToList(singleExprList, sample, index);
 		if (retList == null) return null;
 		String retListStr = retList.toString();
 		return retListStr.substring(1, retListStr.length()-1);
@@ -79,8 +100,6 @@ public class FormulaCalculater {
 			numStrArray = kernelLink.getStringArray1();
 			numberList = new ArrayList<BigInteger>();
 		} catch (MathLinkException e) {
-			System.out.println("Expcetion : " + e.toString() + ". when evaluating '" 
-				+ expr + "'");
 			return null;
 		}
 		for (String numStr : numStrArray) {
@@ -143,7 +162,7 @@ public class FormulaCalculater {
 				String sample = s.nextLine();
 				List<String> exprList = new ArrayList<String>();
 				exprList.add(expr);
-				String A = fc.calculateToString(exprList, sample);
+				String A = fc.calculateToString(exprList, sample, "testIndex");
 				//List<BigInteger> B = fc.calculateToList(expr, null);
 				System.out.println("Response: " + A);
 				System.out.println("------------------------");
