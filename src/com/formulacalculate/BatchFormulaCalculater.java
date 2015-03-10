@@ -10,7 +10,7 @@ import java.util.List;
 import com.util.Constant;
 import com.util.Util;
 
-public class BatchFormulaCalculater {
+public class BatchFormulaCalculater extends Thread{
 	private int startID;
 	private int endID;
 	List<Integer> skipIDList;
@@ -21,6 +21,14 @@ public class BatchFormulaCalculater {
 		this.skipIDList = skipIDList;
 	}
 	
+	public void run() {
+		try {
+			batchCalculate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void batchCalculate() throws Exception {
 		File sampleFile = new File(Constant.SAMPLE_FILE_PATH);
 		File exprFile = new File(Constant.REPLACED_EXPRESSION_FILE_PATH);
@@ -28,7 +36,8 @@ public class BatchFormulaCalculater {
 		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
 		
 		// override by default
-		File formulaCalculatedFile = new File(Constant.FORMULA_CALCULATED_SAVE_PATH);
+		File formulaCalculatedFile = new File(Constant.FORMULA_CALCULATED_SAVE_PATH_PREFIX + 
+				"_" + new Integer(startID) + "_" + new Integer(endID));
 		if (formulaCalculatedFile.exists()) {
 			formulaCalculatedFile.delete();
 		}
@@ -54,7 +63,8 @@ public class BatchFormulaCalculater {
 		}
 
 		// 2-way merge
-		int FailedCalculateItemcount = 0;
+		int failedCalculateItemCount = 0;
+		int lackOfFormulaCount = 0;
 		int lastWrittenSampleID = -1;
 		int sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
 		int exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
@@ -83,7 +93,7 @@ public class BatchFormulaCalculater {
 				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)
 						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1)); // get result calculated by formula
 				if (calculatedResult == null) {
-					FailedCalculateItemcount++;
+					failedCalculateItemCount++;
 				}
 				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult + "\n");
 				lastWrittenSampleID = sampleItemID;
@@ -91,6 +101,7 @@ public class BatchFormulaCalculater {
 				exprItem = exprFileBufferedReader.readLine();
 			} else {
 				if (lastWrittenSampleID != sampleItemID) {
+					lackOfFormulaCount++;
 					formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself	
 					lastWrittenSampleID = sampleItemID;
 				}	
@@ -105,19 +116,29 @@ public class BatchFormulaCalculater {
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
 		
-		System.out.println("Total failed item count:" + FailedCalculateItemcount + 
-				" ratio:" + (1.0 * FailedCalculateItemcount) / (endID - startID + 1));
+		System.out.println("Total failed item count:" + failedCalculateItemCount + 
+				" ratio:" + (1.0 * failedCalculateItemCount) / (endID - startID + 1));
+		System.out.println("Total lack of formula count:" + lackOfFormulaCount + 
+				" ratio:" + (1.0 * lackOfFormulaCount) / (endID - startID + 1));
 	}
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> skipIDList = 
-			Arrays.asList(new Integer[]{50, 94, 238, 341, 534});
+			Arrays.asList(new Integer[]{94, 238, 341, 534});
 		// 50 : running costs too much time
 		// 94 : web page parse error
 		// 238 : running costs too much time
 		// 341 : running costs too much time
 		// 534 : running costs too much time
-		BatchFormulaCalculater bfc = new BatchFormulaCalculater(1, 1000, skipIDList); 
-		bfc.batchCalculate();
+		BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(49, 51, skipIDList); 
+		//BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
+		//BatchFormulaCalculater bfc3 = new BatchFormulaCalculater(2001, 3000, skipIDList);
+		//BatchFormulaCalculater bfc4 = new BatchFormulaCalculater(3001, 4000, skipIDList);
+		//BatchFormulaCalculater bfc5 = new BatchFormulaCalculater(4001, 5000, skipIDList);
+		bfc1.start();
+		//bfc2.start();
+		//bfc3.start();
+		//bfc4.start();
+		//bfc5.start();
 	}
 }

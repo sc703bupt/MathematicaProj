@@ -12,6 +12,7 @@ import com.wolfram.jlink.*;
 
 public class FormulaCalculater {
 	private KernelLink kernelLink;
+	
 	public FormulaCalculater() {
 		System.setProperty("com.wolfram.jlink.libdir", Constant.JLINK_DIR);
 		try {
@@ -57,7 +58,7 @@ public class FormulaCalculater {
 		}
 		
 		for (String singleExpr : singleExprList) {
-			List<BigInteger> singleRet = getFromSingleExpr(singleExpr);
+			List<BigInteger> singleRet = getFromSingleExpr(singleExpr, index);
 			if (singleRet == null) {
 				logFileWriter.write("failed to calculate: " + singleExpr + "\n");
 				continue;
@@ -89,20 +90,31 @@ public class FormulaCalculater {
 	}
 	
 	// only care about single expression and return its result
-	private List<BigInteger> getFromSingleExpr(String expr) {
+	private List<BigInteger> getFromSingleExpr(String expr, String index) {
 		String[] numStrArray = null;
 		List<BigInteger> numberList = null;
 		try {
+			if (kernelLink == null) {
+				kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
+				kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
+			}
 			kernelLink.evaluate("Remove[\"Global`*\"];");// this command cleans all env used before
 			kernelLink.discardAnswer();
+			InterruptTimer timer = new InterruptTimer(Constant.CALCULATE_TIME_OUT, kernelLink, index);
+			timer.start();
 			kernelLink.evaluate(expr);
 			kernelLink.waitForAnswer();
-			int type = kernelLink.getNext();
+			timer.interrupt();
 			numStrArray = kernelLink.getStringArray1();
 			numberList = new ArrayList<BigInteger>();
 		} catch (MathLinkException e) {
-			kernelLink.clearError();
-			kernelLink.newPacket();
+			if (kernelLink.clearError()) {
+				kernelLink.newPacket();
+			} else {
+				kernelLink.terminateKernel();
+				kernelLink.close();
+				kernelLink = null;
+			}
 			return null;
 		}
 		for (String numStr : numStrArray) {
