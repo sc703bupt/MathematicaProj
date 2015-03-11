@@ -29,12 +29,15 @@ public class FormulaCalculater {
 	// we should split it and compare each result from it with sample, 
 	// leave sample null means don't compare
 	public List<BigInteger> calculateToList(List<String> singleExprList, String sample, String index, FileWriter statLogFileWriter) throws Exception {
-		File currentIndexlogFile = new File(Constant.FORMULA_CALCULATE_LOG_PATH_PREFIX + index);
-		if (currentIndexlogFile.exists()) {
-			currentIndexlogFile.delete();
+		FileWriter currentIndexLogFileWriter = null;
+		if (Constant.IS_DETAIL_CALCULATION_LOG) {
+			File currentIndexlogFile = new File(Constant.FORMULA_CALCULATE_LOG_PATH_PREFIX + index);
+			if (currentIndexlogFile.exists()) {
+				currentIndexlogFile.delete();
+			}
+			currentIndexlogFile.createNewFile();
+			currentIndexLogFileWriter = new FileWriter(currentIndexlogFile);
 		}
-		currentIndexlogFile.createNewFile();
-		FileWriter currentIndexLogFileWriter = new FileWriter(currentIndexlogFile);
 		
 		if (kernelLink == null) {
 			kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
@@ -42,13 +45,17 @@ public class FormulaCalculater {
 		}
 		
 		if (singleExprList == null || singleExprList.isEmpty()) {
-			currentIndexLogFileWriter.write("singelExprList is null or empty.\n");
-			currentIndexLogFileWriter.close();
+			if (Constant.IS_DETAIL_CALCULATION_LOG) {
+				currentIndexLogFileWriter.write("singelExprList is null or empty.\n");
+				currentIndexLogFileWriter.close();	
+			}
 			return null;
 		}
 		
-		currentIndexLogFileWriter.write("For index " + index + "\n");
-		currentIndexLogFileWriter.write("Number of expressions: " + new Integer(singleExprList.size()) + "\n");
+		if (Constant.IS_DETAIL_CALCULATION_LOG) {
+			currentIndexLogFileWriter.write("For index " + index + "\n");
+			currentIndexLogFileWriter.write("Number of expressions: " + new Integer(singleExprList.size()) + "\n");	
+		}
 		
 		// covert sample to List<BigInteger>
 		sample = sample.trim();
@@ -61,24 +68,34 @@ public class FormulaCalculater {
 		for (String singleExpr : singleExprList) {
 			List<BigInteger> singleRet = getFromSingleExpr(singleExpr, index, statLogFileWriter);
 			if (singleRet == null) {
-				currentIndexLogFileWriter.write("failed to calculate: " + singleExpr + "\n");
+				if (Constant.IS_DETAIL_CALCULATION_LOG) {
+					currentIndexLogFileWriter.write("failed to calculate: " + singleExpr + "\n");	
+				}
 				continue;
 			}
 			if (singleRet.isEmpty()) {
-				currentIndexLogFileWriter.write("success to calculate but get empty result: " + 
-						singleExpr + "\n");
+				if (Constant.IS_DETAIL_CALCULATION_LOG) {
+					currentIndexLogFileWriter.write("success to calculate but get empty result: " + 
+							singleExpr + "\n");	
+				}
 				continue;
 			}
 			if (!compareTwoBigIntegerList(sampleNumberList, singleRet)) {
-				currentIndexLogFileWriter.write("success to calculate but inconsistent with sample: " + 
-						singleExpr + "\n");
+				if (Constant.IS_DETAIL_CALCULATION_LOG) {
+					currentIndexLogFileWriter.write("success to calculate but inconsistent with sample: " + 
+							singleExpr + "\n");	
+				}
 				continue;
 			}
-			currentIndexLogFileWriter.write("success to calculate: " + singleExpr + "\n");
-			currentIndexLogFileWriter.close();
+			if (Constant.IS_DETAIL_CALCULATION_LOG) {
+				currentIndexLogFileWriter.write("success to calculate: " + singleExpr + "\n");
+				currentIndexLogFileWriter.close();
+			}
 			return singleRet;
 		}
-		currentIndexLogFileWriter.close();
+		if (Constant.IS_DETAIL_CALCULATION_LOG) {
+			currentIndexLogFileWriter.close();
+		}
 		return null;
 	}
 	
