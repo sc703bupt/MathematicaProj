@@ -30,10 +30,21 @@ public class BatchFormulaCalculater extends Thread{
 	}
 	
 	public void batchCalculate() throws Exception {
+		long startTime = System.currentTimeMillis();
+
 		File sampleFile = new File(Constant.SAMPLE_FILE_PATH);
 		File exprFile = new File(Constant.REPLACED_EXPRESSION_FILE_PATH);
 		BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
 		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
+		
+		// override by default
+		File statLogFile = new File(Constant.FORMULA_STATICATICS_LOG_PREFIX + 
+				"_" + new Integer(startID) + "_" + new Integer(endID));
+		if (statLogFile.exists()) {
+			statLogFile.delete();
+		}
+		statLogFile.createNewFile();
+		FileWriter statLogFileWriter = new FileWriter(statLogFile);
 		
 		// override by default
 		File formulaCalculatedFile = new File(Constant.FORMULA_CALCULATED_SAVE_PATH_PREFIX + 
@@ -65,14 +76,17 @@ public class BatchFormulaCalculater extends Thread{
 		// 2-way merge
 		int failedCalculateItemCount = 0;
 		int lackOfFormulaCount = 0;
+		int skipCount = 0;
 		int lastWrittenSampleID = -1;
 		int sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
 		int exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
 		while(sampleItem != null && exprItem != null && sampleItemID <= endID && exprItemID <= endID) {
 			// skip if the id in skipIDList
-			if (skipIDList.contains(new Integer(sampleItemID))) {
+			if (skipIDList != null && skipIDList.contains(new Integer(sampleItemID))) {
 				if (lastWrittenSampleID != sampleItemID) {
-					formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself	
+					skipCount++;
+					statLogFileWriter.write("[SKIP]:" + sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + "\n");
+					formulaCalculatedFileWriter.write(sampleItem + "\n");// skip calculation, use sample itself	
 					lastWrittenSampleID = sampleItemID;
 				}	
 				sampleItem = sampleFileBufferedReader.readLine();
@@ -91,8 +105,9 @@ public class BatchFormulaCalculater extends Thread{
 					exprList.add(exprItem.substring(Constant.INDEX_WIDTH + 2));
 				}
 				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)
-						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1)); // get result calculated by formula
+						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1), statLogFileWriter); // get result calculated by formula
 				if (calculatedResult == null) {
+					calculatedResult = sampleItem.substring(Constant.INDEX_WIDTH + 2);
 					failedCalculateItemCount++;
 				}
 				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult + "\n");
@@ -102,6 +117,7 @@ public class BatchFormulaCalculater extends Thread{
 			} else {
 				if (lastWrittenSampleID != sampleItemID) {
 					lackOfFormulaCount++;
+					statLogFileWriter.write("[LACK]:" + sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + "\n");
 					formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself	
 					lastWrittenSampleID = sampleItemID;
 				}	
@@ -111,32 +127,35 @@ public class BatchFormulaCalculater extends Thread{
 			exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
 		}
 		
+		long endTime = System.currentTimeMillis(); //获取结束时间
+		
+		statLogFileWriter.write("Total all formula failed item count:" + failedCalculateItemCount + "\n");
+		statLogFileWriter.write("Total lack of formula item count:" + lackOfFormulaCount + "\n");
+		statLogFileWriter.write("Total skip item count:" + skipCount + "\n");
+		statLogFileWriter.write("Total time used:" + (endTime-startTime)/1000 + "s\n");
+		
 		// close
 		sampleFileBufferedReader.close();
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
-		
-		System.out.println("Total failed item count:" + failedCalculateItemCount + 
-				" ratio:" + (1.0 * failedCalculateItemCount) / (endID - startID + 1));
-		System.out.println("Total lack of formula count:" + lackOfFormulaCount + 
-				" ratio:" + (1.0 * lackOfFormulaCount) / (endID - startID + 1));
+		statLogFileWriter.close();
 	}
 	
 	public static void main(String[] args) throws Exception {
 		List<Integer> skipIDList = 
-			Arrays.asList(new Integer[]{94, 238, 341, 534});
+			Arrays.asList(new Integer[]{94});
 		// 50 : running costs too much time
 		// 94 : web page parse error
 		// 238 : running costs too much time
 		// 341 : running costs too much time
 		// 534 : running costs too much time
-		BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(49, 51, skipIDList); 
-		//BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
+		BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(1, 1000, null); 
+		BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
 		//BatchFormulaCalculater bfc3 = new BatchFormulaCalculater(2001, 3000, skipIDList);
 		//BatchFormulaCalculater bfc4 = new BatchFormulaCalculater(3001, 4000, skipIDList);
 		//BatchFormulaCalculater bfc5 = new BatchFormulaCalculater(4001, 5000, skipIDList);
 		bfc1.start();
-		//bfc2.start();
+		bfc2.start();
 		//bfc3.start();
 		//bfc4.start();
 		//bfc5.start();

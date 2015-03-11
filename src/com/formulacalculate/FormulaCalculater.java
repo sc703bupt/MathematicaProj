@@ -2,6 +2,7 @@ package com.formulacalculate;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Scanner;
 import java.util.List;
@@ -27,27 +28,27 @@ public class FormulaCalculater {
 	// complexExpr is the whole expression from webpage MATHEMATICA option
 	// we should split it and compare each result from it with sample, 
 	// leave sample null means don't compare
-	public List<BigInteger> calculateToList(List<String> singleExprList, String sample, String index) throws Exception {
-		File logFile = new File(Constant.FORMULA_CALCULATE_LOG_PATH_PREFIX + index);
-		if (logFile.exists()) {
-			logFile.delete();
+	public List<BigInteger> calculateToList(List<String> singleExprList, String sample, String index, FileWriter statLogFileWriter) throws Exception {
+		File currentIndexlogFile = new File(Constant.FORMULA_CALCULATE_LOG_PATH_PREFIX + index);
+		if (currentIndexlogFile.exists()) {
+			currentIndexlogFile.delete();
 		}
-		logFile.createNewFile();
-		FileWriter logFileWriter = new FileWriter(logFile);
+		currentIndexlogFile.createNewFile();
+		FileWriter currentIndexLogFileWriter = new FileWriter(currentIndexlogFile);
 		
 		if (kernelLink == null) {
-			logFileWriter.write("KenerLink is null.\n");
-			logFileWriter.close();
-			throw new Exception("KernelLink");
+			kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
+			kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
 		}
+		
 		if (singleExprList == null || singleExprList.isEmpty()) {
-			logFileWriter.write("singelExprList is null or empty.\n");
-			logFileWriter.close();
+			currentIndexLogFileWriter.write("singelExprList is null or empty.\n");
+			currentIndexLogFileWriter.close();
 			return null;
 		}
 		
-		logFileWriter.write("For index " + index + "\n");
-		logFileWriter.write("Number of expressions: " + new Integer(singleExprList.size()) + "\n");
+		currentIndexLogFileWriter.write("For index " + index + "\n");
+		currentIndexLogFileWriter.write("Number of expressions: " + new Integer(singleExprList.size()) + "\n");
 		
 		// covert sample to List<BigInteger>
 		sample = sample.trim();
@@ -58,67 +59,70 @@ public class FormulaCalculater {
 		}
 		
 		for (String singleExpr : singleExprList) {
-			List<BigInteger> singleRet = getFromSingleExpr(singleExpr, index);
+			List<BigInteger> singleRet = getFromSingleExpr(singleExpr, index, statLogFileWriter);
 			if (singleRet == null) {
-				logFileWriter.write("failed to calculate: " + singleExpr + "\n");
+				currentIndexLogFileWriter.write("failed to calculate: " + singleExpr + "\n");
 				continue;
 			}
 			if (singleRet.isEmpty()) {
-				logFileWriter.write("success to calculate but get empty result: " + 
+				currentIndexLogFileWriter.write("success to calculate but get empty result: " + 
 						singleExpr + "\n");
 				continue;
 			}
 			if (!compareTwoBigIntegerList(sampleNumberList, singleRet)) {
-				logFileWriter.write("success to calculate but inconsistent with sample: " + 
+				currentIndexLogFileWriter.write("success to calculate but inconsistent with sample: " + 
 						singleExpr + "\n");
 				continue;
 			}
-			logFileWriter.write("success to calculate: " + singleExpr + "\n");
-			logFileWriter.close();
+			currentIndexLogFileWriter.write("success to calculate: " + singleExpr + "\n");
+			currentIndexLogFileWriter.close();
 			return singleRet;
 		}
-		logFileWriter.close();
+		currentIndexLogFileWriter.close();
 		return null;
 	}
 	
 	// call calculateToList and get the String form
-	public String calculateToString(List<String> singleExprList, String sample, String index) throws Exception{
-		List<BigInteger> retList =  calculateToList(singleExprList, sample, index);
+	public String calculateToString(List<String> singleExprList, String sample, String index, FileWriter statLogFile) throws Exception{
+		List<BigInteger> retList =  calculateToList(singleExprList, sample, index, statLogFile);
 		if (retList == null) return null;
 		String retListStr = retList.toString();
 		return retListStr.substring(1, retListStr.length()-1);
 	}
 	
 	// only care about single expression and return its result
-	private List<BigInteger> getFromSingleExpr(String expr, String index) {
+	private List<BigInteger> getFromSingleExpr(String expr, String index, FileWriter statLogFileWriter) throws IOException {
 		String[] numStrArray = null;
 		List<BigInteger> numberList = null;
 		try {
-			if (kernelLink == null) {
-				kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
-				kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
-			}
 			kernelLink.evaluate("Remove[\"Global`*\"];");// this command cleans all env used before
 			kernelLink.discardAnswer();
-			InterruptTimer timer = new InterruptTimer(Constant.CALCULATE_TIME_OUT, kernelLink, index);
+			InterruptTimer timer = new InterruptTimer(Constant.CALCULATE_TIME_OUT, kernelLink);
 			timer.start();
 			kernelLink.evaluate(expr);
 			kernelLink.waitForAnswer();
 			timer.interrupt();
 			numStrArray = kernelLink.getStringArray1();
 			numberList = new ArrayList<BigInteger>();
+			for (String numStr : numStrArray) {
+				numberList.add(new BigInteger(numStr));
+			}
+			statLogFileWriter.write("[Finish]:" + index + "\n");	
 		} catch (MathLinkException e) {
-			if (kernelLink.clearError()) {
-				kernelLink.newPacket();
-			} else {
+			if (e.getErrCode() == 25) {
 				kernelLink.terminateKernel();
 				kernelLink.close();
 				kernelLink = null;
+				statLogFileWriter.write("[TIMEOUT]:" + index + ", error code is " + e.getErrCode() + "\n");
+			} else {
+				kernelLink.clearError();
+				kernelLink.newPacket();
+				statLogFileWriter.write("[MathLinkException]: "+ index + ", error code is " + e.getErrCode() + "\n");
 			}
 			return null;
-		}
-		for (String numStr : numStrArray) {
-			numberList.add(new BigInteger(numStr));
+		} catch (Exception e) {
+			statLogFileWriter.write("[OtherException]: reason is " + e.toString() + "\n");
+			return null;
 		}
 		return numberList;
 	}
@@ -152,7 +156,7 @@ public class FormulaCalculater {
 				String sample = s.nextLine();
 				List<String> exprList = new ArrayList<String>();
 				exprList.add(expr);
-				String A = fc.calculateToString(exprList, sample, "testIndex");
+				String A = fc.calculateToString(exprList, sample, "testIndex", null);
 				System.out.println("Response: " + A);
 				System.out.println("------------------------");
 			}

@@ -4,7 +4,7 @@ public class Constant {
 	public final static int TOTAL_PAGES_COUNT = 255728;
 	public final static int FOLDER_LEVEL_FOR_DIVIDE = 3;
 	public final static int INDEX_WIDTH = 6; // not including leading 'A'
-	public final static long CALCULATE_TIME_OUT = 5000; // 30s
+	public final static long CALCULATE_TIME_OUT = 10000; // 10s
 	
 	public final static String OEIS_URL_PREFIX = "http://oeis.org/";
 	public final static String JLINK_DIR = "c:\\Program Files\\Wolfram Research\\Mathematica\\9.0\\SystemFiles\\Links\\JLink";
@@ -16,5 +16,6 @@ public class Constant {
 
 	public final static String FORMULA_CALCULATED_SAVE_PATH_PREFIX = "C:\\test\\FormulaCalculated";
 	public final static String FORMULA_CALCULATE_LOG_PATH_PREFIX = "C:\\test\\";
+	public final static String FORMULA_STATICATICS_LOG_PREFIX = "C:\\test\\Statistics";
 	public final static String FINAL_OUTPUT_SAVE_PATH = "D:\\FinalOutput";
 }
