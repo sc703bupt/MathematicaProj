@@ -27,6 +27,7 @@ public class BatchFormulaCalculater extends Thread{
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("Task for " + startID + " to " + endID +" is done.");
 	}
 	
 	public void batchCalculate() throws Exception {
@@ -60,7 +61,7 @@ public class BatchFormulaCalculater extends Thread{
 		// find the first one exceed startID in sample file
 		String sampleItem = null;
 		while ((sampleItem = sampleFileBufferedReader.readLine()) != null) {
-			if (Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1)) >= startID) {
+			if (Util.getIDFromIndex(Util.getIndexFromItem(sampleItem)) >= startID) {
 				break;
 			}
 		}
@@ -68,7 +69,7 @@ public class BatchFormulaCalculater extends Thread{
 		// find the first one exceed startID in expression file
 		String exprItem = null;
 		while ((exprItem = exprFileBufferedReader.readLine()) != null) {
-			if (Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1)) >= startID) {
+			if (Util.getIDFromIndex(Util.getIndexFromItem(exprItem)) >= startID) {
 				break;
 			}
 		}
@@ -78,54 +79,56 @@ public class BatchFormulaCalculater extends Thread{
 		int lackOfFormulaCount = 0;
 		int skipCount = 0;
 		int lastWrittenSampleID = -1;
-		int sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
-		int exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
+		int sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
+		int exprItemID = Util.getIDFromIndex(Util.getIndexFromItem(exprItem));
 		while(sampleItem != null && exprItem != null && sampleItemID <= endID && exprItemID <= endID) {
 			// skip if the id in skipIDList
 			if (skipIDList != null && skipIDList.contains(new Integer(sampleItemID))) {
 				if (lastWrittenSampleID != sampleItemID) {
 					skipCount++;
-					statLogFileWriter.write("[SKIP]:" + sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + "\n");
+					statLogFileWriter.write("[SKIP]:" + Util.getIndexFromItem(sampleItem) + "\n");
 					formulaCalculatedFileWriter.write(sampleItem + "\n");// skip calculation, use sample itself	
 					lastWrittenSampleID = sampleItemID;
 				}	
 				sampleItem = sampleFileBufferedReader.readLine();
-				sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
+				sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
 				continue;
 			}
 			
 			if (sampleItemID == exprItemID) {
 				List<String> exprList = new ArrayList<String>();
-				exprList.add(exprItem.substring(Constant.INDEX_WIDTH + 2));
+				exprList.add(Util.getContentFromItem(exprItem));
 				while ((exprItem = exprFileBufferedReader.readLine()) != null) {
-					int newExprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
+					int newExprItemID = Util.getIDFromIndex(Util.getIndexFromItem(exprItem));
 					if (newExprItemID != sampleItemID) {
 						break;
 					}
-					exprList.add(exprItem.substring(Constant.INDEX_WIDTH + 2));
+					exprList.add(Util.getContentFromItem(exprItem));
 				}
-				String calculatedResult = fc.calculateToString(exprList, sampleItem.substring(Constant.INDEX_WIDTH + 2)
-						, sampleItem.substring(0 , Constant.INDEX_WIDTH + 1), statLogFileWriter); // get result calculated by formula
+				String calculatedResult = fc.calculateToString(exprList, Util.getContentFromItem(sampleItem)
+						, Util.getIndexFromItem(sampleItem), statLogFileWriter); // get result calculated by formula
 				if (calculatedResult == null) {
-					calculatedResult = sampleItem.substring(Constant.INDEX_WIDTH + 2);
+					calculatedResult = Util.getContentFromItem(sampleItem);
 					failedCalculateItemCount++;
 				}
-				formulaCalculatedFileWriter.write(sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + ":" + calculatedResult + "\n");
+				formulaCalculatedFileWriter.write(Util.getIndexFromItem(sampleItem) + ":" + calculatedResult + "\n");
 				lastWrittenSampleID = sampleItemID;
 			} else if (sampleItemID > exprItemID) {
 				exprItem = exprFileBufferedReader.readLine();
 			} else {
 				if (lastWrittenSampleID != sampleItemID) {
 					lackOfFormulaCount++;
-					statLogFileWriter.write("[LACK]:" + sampleItem.substring(0, Constant.INDEX_WIDTH + 1) + "\n");
+					statLogFileWriter.write("[LACK]:" + Util.getIndexFromItem(sampleItem) + "\n");
 					formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself	
 					lastWrittenSampleID = sampleItemID;
 				}	
 				sampleItem = sampleFileBufferedReader.readLine();
 			}
-			sampleItemID = Util.getIDFromIndex(sampleItem.substring(0, Constant.INDEX_WIDTH + 1));
-			exprItemID = Util.getIDFromIndex(exprItem.substring(0, Constant.INDEX_WIDTH + 1));
+			sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
+			exprItemID = Util.getIDFromIndex(Util.getIndexFromItem(exprItem));
 		}
+		
+		// TODO(shenchen): impl: handle superfluous sample item
 		
 		long endTime = System.currentTimeMillis(); //获取结束时间
 		
@@ -149,15 +152,14 @@ public class BatchFormulaCalculater extends Thread{
 		// 238 : running costs too much time
 		// 341 : running costs too much time
 		// 534 : running costs too much time
-		BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(1, 1000, null); 
-		BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
-		//BatchFormulaCalculater bfc3 = new BatchFormulaCalculater(2001, 3000, skipIDList);
-		//BatchFormulaCalculater bfc4 = new BatchFormulaCalculater(3001, 4000, skipIDList);
-		//BatchFormulaCalculater bfc5 = new BatchFormulaCalculater(4001, 5000, skipIDList);
-		bfc1.start();
-		bfc2.start();
-		//bfc3.start();
-		//bfc4.start();
-		//bfc5.start();
+		//BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(1, 1000, null); 
+		//BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
+		//bfc1.start();
+		//bfc2.start();
+
+		for (int i = 0; i <= 25; i++) {
+			BatchFormulaCalculater bfc = new BatchFormulaCalculater(10000 * i + 1, 10000 * (i + 1), null);
+			bfc.start();
+		}
 	}
 }

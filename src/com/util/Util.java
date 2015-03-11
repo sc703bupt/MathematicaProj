@@ -26,6 +26,14 @@ public class Util {
 		return 0;
 	}
 	
+	public static String getIndexFromItem(String item) {
+		return item.substring(0, Constant.INDEX_WIDTH + 1);
+	}
+	
+	public static String getContentFromItem(String item) {
+		return item.substring(Constant.INDEX_WIDTH + 2);
+	}
+	
 	public static void write(FileWriter writer, String content) {          
         try {               
         	writer.write(content);               
