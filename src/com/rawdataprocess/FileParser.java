@@ -169,7 +169,8 @@ public class FileParser extends Thread {
             	int expressionStartIndex = tempString.indexOf(startTag);
             	expression = tempString.substring(expressionStartIndex + startTag.length()).trim();
             	expression = expression.substring(0, expression.length() - endTag.length());
-            	expression = SpecialSymbolReplacer.replaceSpecialSymbol(expression);
+            	expression = SymbolReplacer.replaceSymbolForOneItem(expression);
+            	expression = SymbolReplacer.replaceDataRangeForOneItem(expression);
             	Util.write(expressionFileWriter, fileFullName + ":" + expression + "\n"); 
             	
             	//find next MATHEMATICA

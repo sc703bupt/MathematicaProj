@@ -41,24 +41,19 @@ public class Util {
             e.printStackTrace();
         }
     }
-	
-	public static boolean appendOneRow(FileWriter fw, String key, String content) {
-		if (fw == null || key == null || content == null) {
+
+	public static boolean isNumber(String content) {
+		if (content == null) {
 			return false;
 		}
-		
-		try {
-			fw.write(key + ":" + content);
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
+		content = content.trim();
+		for (int i = 0; i <= content.length() - 1; i++) {
+			char c = content.charAt(i);
+			if (!(c >= '0' && c <= '9')) {
+				return false;
+			}
 		}
-	}
-		
-	public static List<String> readContentByRange(FileReader fr, String key, int startId, int endId) {
-		//TODO(shenchen):impl
-		return null;
+		return true;
 	}
 	
 	// delete all sub-files and sub-folders, then the folder itself

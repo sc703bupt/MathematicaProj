@@ -5,6 +5,7 @@ public class Constant {
 	public final static int FOLDER_LEVEL_FOR_DIVIDE = 3;
 	public final static int INDEX_WIDTH = 6; // not including leading 'A'
 	public final static long CALCULATE_TIME_OUT = 10000; // 10s
+	public final static int PROGRESSION_LENGTH = 110;
 	
 	public final static boolean IS_DETAIL_CALCULATION_LOG = false;
 	
