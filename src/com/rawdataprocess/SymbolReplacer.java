@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Stack;
 
 import com.util.Constant;
 import com.util.Util;
@@ -49,14 +50,152 @@ public class SymbolReplacer {
 		if (replacedExprItem.equals(exprItem)) {
 			replacedExprItem = ruleTwo(exprItem);
 		}
+		if (replacedExprItem.equals(exprItem)) {
+			replacedExprItem = ruleThree(exprItem);
+		}
 		return replacedExprItem;
-	} 
+	}
 	
-	// Range[100] -> Range[Constant.PROGRESSION_LENGTH]
+	// Table[...{x, 0, 100}] -> Table[...{x, 0, Constant.PROGRESSION_LENGTH - 1}]
+	// Table[...{x, 100}] - > Table[...{x, 0, Constant.PROGRESSION_LENGTH - 1}]
 	private static String ruleOne(String exprItem) {
 		int startPos = 0;
 		int symbolPos;
-		do{
+		do {
+			symbolPos = exprItem.indexOf("Table", startPos);
+			if(symbolPos == -1) {
+				break;
+			}
+			int leftSquareBracketsPos = 
+					symbolPos + 5 <= exprItem.length() - 1 && exprItem.charAt(symbolPos + 5) == '['? symbolPos + 5 : -1;
+			if (leftSquareBracketsPos != -1) {
+				Stack<Integer> posStk = new Stack<Integer>();
+				int pos = leftSquareBracketsPos + 1;
+				posStk.push(leftSquareBracketsPos);
+				while (pos <= exprItem.length() - 1) {
+					char c = exprItem.charAt(pos);
+					if (c == '[') {
+						posStk.push(pos);
+					} else if (c == ']') {
+						posStk.pop();
+					}
+					if (posStk.empty()) {
+						break;
+					}
+					pos++;
+				}
+				
+				// valid && found, now pos is the ']' position counterpart of the '[' 
+				// right behind the "Table"
+				if (posStk.empty() && pos <= exprItem.length() - 1) {
+					int rightBracePos = -1, leftBracePos = -1;
+					while (pos >= 0) {
+						char c = exprItem.charAt(pos);
+						if (c == '}') {
+							rightBracePos = pos;
+						} else if (c == '{') {
+							leftBracePos = pos;
+							break;
+						}
+						pos--;
+					}
+					
+					// the positions of '{' and '}' are found
+					if (rightBracePos != -1 && leftBracePos != -1) {
+						String paraString = exprItem.substring(leftBracePos + 1, rightBracePos);
+						String frontPart = exprItem.substring(0, leftBracePos + 1);
+						String backPart = exprItem.substring(rightBracePos);
+						String[] paraArray = paraString.split(",");
+						if (paraArray.length == 2 && Util.isNumber(paraArray[1].trim())) {// {x, 100}
+							return frontPart + paraArray[0].trim() + ", " + Constant.PROGRESSION_LENGTH + backPart;
+						} else if (paraArray.length == 3 && Util.isNumber(paraArray[1].trim())) {// {x,0,99}
+							Integer startNumber = new Integer(paraArray[1].trim());
+							int expectedEndNumber = startNumber + Constant.PROGRESSION_LENGTH - 1;
+							return frontPart + paraArray[0].trim() + ", " + paraArray[1].trim() + ", " + expectedEndNumber + backPart;
+						}
+					}
+				}
+			}
+			startPos = symbolPos + 5;
+		} while(symbolPos != -1);
+		
+		// no replacement, return exprItem itself
+		return exprItem;
+	}
+	
+	// Series[...{x, 0, 100}] -> Table[...{x, 0, Constant.PROGRESSION_LENGTH - 1}]
+	// Series[...{x, 100}] - > Table[...{x, 0, Constant.PROGRESSION_LENGTH - 1}]
+	private static String ruleTwo(String exprItem) {
+		int startPos = 0;
+		int symbolPos;
+		do {
+			symbolPos = exprItem.indexOf("Series", startPos);
+			if(symbolPos == -1) {
+				break;
+			}
+			int leftSquareBracketsPos = 
+					symbolPos + 5 <= exprItem.length() - 1 && exprItem.charAt(symbolPos + 5) == '['? symbolPos + 5 : -1;
+			if (leftSquareBracketsPos != -1) {
+				Stack<Integer> posStk = new Stack<Integer>();
+				int pos = leftSquareBracketsPos + 1;
+				posStk.push(leftSquareBracketsPos);
+				while (pos <= exprItem.length() - 1) {
+					char c = exprItem.charAt(pos);
+					if (c == '[') {
+						posStk.push(pos);
+					} else if (c == ']') {
+						posStk.pop();
+					}
+					if (posStk.empty()) {
+						break;
+					}
+					pos++;
+				}
+				
+				// valid && found, now pos is the ']' position counterpart of the '[' 
+				// right behind the "Table"
+				if (posStk.empty() && pos <= exprItem.length() - 1) {
+					int rightBracePos = -1, leftBracePos = -1;
+					while (pos >= 0) {
+						char c = exprItem.charAt(pos);
+						if (c == '}') {
+							rightBracePos = pos;
+						} else if (c == '{') {
+							leftBracePos = pos;
+							break;
+						}
+						pos--;
+					}
+					
+					// the positions of '{' and '}' are found
+					if (rightBracePos != -1 && leftBracePos != -1) {
+						String paraString = exprItem.substring(leftBracePos + 1, rightBracePos);
+						String frontPart = exprItem.substring(0, leftBracePos + 1);
+						String backPart = exprItem.substring(rightBracePos);
+						String[] paraArray = paraString.split(",");
+						if (paraArray.length == 2 && Util.isNumber(paraArray[1].trim())) {// {x, 100}
+							return frontPart + paraArray[0].trim() + ", " + Constant.PROGRESSION_LENGTH + backPart;
+						} else if (paraArray.length == 3 && Util.isNumber(paraArray[1].trim())) {// {x,0,99}
+							Integer startNumber = new Integer(paraArray[1].trim());
+							int expectedEndNumber = startNumber + Constant.PROGRESSION_LENGTH - 1;
+							return frontPart + paraArray[0].trim() + ", " + paraArray[1].trim() + ", " + expectedEndNumber + backPart;
+						}
+					}
+				}
+			}
+			startPos = symbolPos + 5;
+		} while(symbolPos != -1);
+		
+		// no replacement, return exprItem itself
+		return exprItem;
+	}
+	
+	// Range[100] -> Range[Constant.PROGRESSION_LENGTH]
+	// Range[0,99] or Range[0,nn] -> Range[0,Constant.PROGRESSION_LENGTH]
+	private static String ruleThree(String exprItem) {
+		int startPos = 0;
+		int symbolPos;
+		do {
 			symbolPos = exprItem.indexOf("Range", startPos);
 			if(symbolPos == -1) {
 				break;
@@ -66,10 +205,17 @@ public class SymbolReplacer {
 			int rightSquareBracketsPos = exprItem.indexOf("]", symbolPos + 5);
 			if (leftSquareBracketsPos != -1 && rightSquareBracketsPos != -1) {
 				String paraString = exprItem.substring(leftSquareBracketsPos + 1, rightSquareBracketsPos);
-				if (Util.isNumber(paraString)) {
-					String frontPart = exprItem.substring(0, leftSquareBracketsPos + 1);
-					String backPart = exprItem.substring(rightSquareBracketsPos);
+				String frontPart = exprItem.substring(0, leftSquareBracketsPos + 1);
+				String backPart = exprItem.substring(rightSquareBracketsPos);
+				if (Util.isNumber(paraString)) { // [100]
 					return frontPart + Constant.PROGRESSION_LENGTH + backPart;
+				} else { // [0,99] or [0,nn]
+					String[] paraArray = paraString.split(",");
+					if (paraArray.length == 2 && Util.isNumber(paraArray[0].trim())) {
+						Integer startNumber = new Integer(paraArray[0].trim());
+						int expectedEndNumber = startNumber + Constant.PROGRESSION_LENGTH - 1;
+						return frontPart + paraArray[0].trim() + ", " + expectedEndNumber + backPart;
+					}
 				}
 			}
 			startPos = symbolPos + 5;
@@ -77,12 +223,6 @@ public class SymbolReplacer {
  		
 		// no replacement, return exprItem itself
 		return exprItem;
-	}
-	
-	// {x, 0, 100} -> {x, 0, Constant.PROGRESSION_LENGTH - 1} 
-	// {x, 100} -> {x, PROGRESSION_LENGTH}
-	private static String ruleTwo(String exprItem) {
-		return null;
 	}
 	
 	public static void main(String[] args) throws IOException {
