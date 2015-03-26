@@ -152,16 +152,14 @@ public class BatchFormulaCalculater extends Thread{
 		// 238 : running costs too much time
 		// 341 : running costs too much time
 		// 534 : running costs too much time
-		BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(1, 1000, null); 
-		BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
-		bfc1.start();
-		bfc2.start();
+		//BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(200, 300, null); 
+		//BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
+		//bfc1.start();
+		//bfc2.start();
 		
-		/*
-		for (int i = 0; i <= 25; i++) {
+		for (int i = 3; i <= 3; i++) {
 			BatchFormulaCalculater bfc = new BatchFormulaCalculater(10000 * i + 1, 10000 * (i + 1), null);
 			bfc.start();
 		}
-		*/
 	}
 }

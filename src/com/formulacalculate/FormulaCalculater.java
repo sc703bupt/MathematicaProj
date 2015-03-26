@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import com.util.Constant;
+import com.util.Util;
 import com.wolfram.jlink.*;
 
 public class FormulaCalculater {
@@ -62,6 +63,9 @@ public class FormulaCalculater {
 		String[] sampleNumbers = sample.split(", ");
 		List<BigInteger> sampleNumberList = new ArrayList<BigInteger>();
 		for (String sampleNumber : sampleNumbers) {
+			if (!Util.isNumber(sampleNumber.trim())) {
+				continue;
+			}
 			sampleNumberList.add(new BigInteger(sampleNumber.trim()));
 		}
 		
@@ -131,14 +135,19 @@ public class FormulaCalculater {
 				kernelLink.close();
 				kernelLink = null;
 				statLogFileWriter.write("[TIMEOUT]:" + index + ", error code is " + e.getErrCode() + "\n");
+			} else if(e.getErrCode() == 1) {
+				kernelLink.terminateKernel();
+				kernelLink.close();
+				kernelLink = null;
+				statLogFileWriter.write("[FATAL]:" + index + ", error code is " + e.getErrCode() + "\n");
 			} else {
 				kernelLink.clearError();
 				kernelLink.newPacket();
-				statLogFileWriter.write("[MathLinkException]: "+ index + ", error code is " + e.getErrCode() + "\n");
+				statLogFileWriter.write("[MathLinkException]: " + index + ", error code is " + e.getErrCode() + "\n");
 			}
 			return null;
 		} catch (Exception e) {
-			statLogFileWriter.write("[OtherException]: reason is " + e.toString() + "\n");
+			statLogFileWriter.write("[OtherException]:"+ index + ", reason is " + e.toString() + "\n");
 			return null;
 		}
 		return numberList;

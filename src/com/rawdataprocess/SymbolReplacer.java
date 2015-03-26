@@ -5,11 +5,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
-
 import com.util.Constant;
 import com.util.Util;
 
@@ -109,8 +109,8 @@ public class SymbolReplacer {
 						if (paraArray.length == 2 && Util.isNumber(paraArray[1].trim())) {// {x, 100}
 							return frontPart + paraArray[0].trim() + ", " + Constant.PROGRESSION_LENGTH + backPart;
 						} else if (paraArray.length == 3 && Util.isNumber(paraArray[1].trim())) {// {x,0,99}
-							Integer startNumber = new Integer(paraArray[1].trim());
-							int expectedEndNumber = startNumber + Constant.PROGRESSION_LENGTH - 1;
+							BigInteger startNumber = new BigInteger(paraArray[1].trim());
+							BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Constant.PROGRESSION_LENGTH - 1)));
 							return frontPart + paraArray[0].trim() + ", " + paraArray[1].trim() + ", " + expectedEndNumber + backPart;
 						}
 					}
@@ -176,8 +176,8 @@ public class SymbolReplacer {
 						if (paraArray.length == 2 && Util.isNumber(paraArray[1].trim())) {// {x, 100}
 							return frontPart + paraArray[0].trim() + ", " + Constant.PROGRESSION_LENGTH + backPart;
 						} else if (paraArray.length == 3 && Util.isNumber(paraArray[1].trim())) {// {x,0,99}
-							Integer startNumber = new Integer(paraArray[1].trim());
-							int expectedEndNumber = startNumber + Constant.PROGRESSION_LENGTH - 1;
+							BigInteger startNumber = new BigInteger(paraArray[1].trim());
+							BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Constant.PROGRESSION_LENGTH - 1)));
 							return frontPart + paraArray[0].trim() + ", " + paraArray[1].trim() + ", " + expectedEndNumber + backPart;
 						}
 					}
@@ -212,8 +212,8 @@ public class SymbolReplacer {
 				} else { // [0,99] or [0,nn]
 					String[] paraArray = paraString.split(",");
 					if (paraArray.length == 2 && Util.isNumber(paraArray[0].trim())) {
-						Integer startNumber = new Integer(paraArray[0].trim());
-						int expectedEndNumber = startNumber + Constant.PROGRESSION_LENGTH - 1;
+						BigInteger startNumber = new BigInteger(paraArray[0].trim());
+						BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Constant.PROGRESSION_LENGTH - 1)));
 						return frontPart + paraArray[0].trim() + ", " + expectedEndNumber + backPart;
 					}
 				}
@@ -226,8 +226,9 @@ public class SymbolReplacer {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		//SymbolReplacer ssp = new SymbolReplacer();
-		//ssp.replace();
+		SymbolReplacer ssp = new SymbolReplacer();
+		ssp.replace();
+		/*
 		while(true) {
 			System.out.println("Please enter expr:");
 			Scanner s = new Scanner(System.in);
@@ -235,5 +236,6 @@ public class SymbolReplacer {
 			System.out.println(ruleOne(expr));
 			System.out.println("--");
 		}
+		*/
 	}
 }
