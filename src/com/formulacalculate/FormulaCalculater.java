@@ -126,7 +126,11 @@ public class FormulaCalculater {
 			numStrArray = kernelLink.getStringArray1();
 			numberList = new ArrayList<BigInteger>();
 			for (String numStr : numStrArray) {
-				numberList.add(new BigInteger(numStr));
+				BigInteger num = new BigInteger(numStr);
+				if (num.compareTo(BigInteger.valueOf(Constant.PROGRESSION_MAX_VALUE)) == 1) {
+					break;
+				}
+				numberList.add(num);
 			}
 			statLogFileWriter.write("[Finish]:" + index + "\n");	
 		} catch (MathLinkException e) {
