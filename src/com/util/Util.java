@@ -1,9 +1,12 @@
 package com.util;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.List;
 
 public class Util {
@@ -83,4 +86,44 @@ public class Util {
 	    }
 	    return;
 	}
+	
+	// copy one file to a specified place
+	public static boolean copyFile(String absSourceFilePath, String absDestFilePath) {
+		File sourceFile = new File(absSourceFilePath);
+		File destFile = new File(absDestFilePath);
+		if (!sourceFile.exists()) {
+			return false;
+		}
+		if (destFile.exists()) {
+			try {
+				Util.delFolder(absDestFilePath);
+				destFile.createNewFile();
+			} catch (IOException e) {
+				return false;
+			}
+		}
+        FileInputStream fi = null;
+        FileOutputStream fo = null;
+        FileChannel in = null;
+        FileChannel out = null;
+        try {
+            fi = new FileInputStream(sourceFile);
+            fo = new FileOutputStream(destFile);
+            in = fi.getChannel();
+            out = fo.getChannel();
+            in.transferTo(0, in.size(), out);
+        } catch (IOException e) {
+            return false;
+        } finally {
+            try {
+            	in.close();
+                fi.close();
+                out.close();
+                fo.close();                
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
