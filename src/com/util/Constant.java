@@ -7,8 +7,8 @@ public class Constant {
 	public final static long CALCULATE_TIME_OUT = 20000; // 20s
 	public final static int PROGRESSION_LENGTH = 100;
 	public final static int FILE_PATH_LIMIT = 240;
-	public final static int SINGLE_FILE_ITEM_COUNT_VALVE = 3;
-	public final static int SUP_INIT_FILE_NAME = 30;
+	public final static int SINGLE_FILE_ITEM_COUNT_VALVE = 100;
+	public final static int SUP_INIT_FILE_NAME = 10000;
 	
 	public final static boolean IS_DETAIL_CALCULATION_LOG = false;
 	
@@ -24,6 +24,6 @@ public class Constant {
 	public final static String FORMULA_CALCULATE_LOG_PATH_PREFIX = "c:\\MathOutput\\";
 	public final static String FORMULA_STATICATICS_LOG_PREFIX = "c:\\MathOutput\\Statistics";
 	
-	public final static String SOURCE_FOR_DIVIDE_PATH = "c:\\MathOutput\\30";
+	public final static String SOURCE_FOR_DIVIDE_PATH = "c:\\MathOutput\\10000";
 	public final static String DIVIDE_SAVE_PATH_PREFIX = "c:\\MathOutput\\";
 }

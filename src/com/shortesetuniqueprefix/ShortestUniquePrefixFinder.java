@@ -2,13 +2,10 @@ package com.shortesetuniqueprefix;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -185,6 +182,12 @@ public class ShortestUniquePrefixFinder {
 		*/
 		Map<BigInteger, Node> nodeMap = new HashMap<BigInteger, Node>();
 		for (String index : node.indexSet) {
+			List<BigInteger> progressionList = progressionMap.get(index);
+			// if progression is not enough long, use special symbol for marking it and continue
+			if (node.level > progressionList.size()-1) {
+				indexToSUPMap.put(index, "length > " + Integer.valueOf(node.level));
+				continue;
+			}
 			BigInteger divideNorm = progressionMap.get(index).get(node.level);
 			Node targetNode = nodeMap.get(divideNorm);
 			if (targetNode == null) {
