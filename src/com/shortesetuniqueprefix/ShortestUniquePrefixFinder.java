@@ -16,16 +16,36 @@ import com.util.*;
 
 public class ShortestUniquePrefixFinder {
 	public Map<String, String> indexToSUPMap = new HashMap<String, String>();
+	public Map<String, String> indexToSUPLengthMap = new HashMap<String, String>();
 	
 	public final void getSUPAndOutput() throws Exception {
-		Map<String, String> indexToSUPMap = divideAndFind();
-		// TODO(shenchen): integrate and output
-		for (String index : indexToSUPMap.keySet()) {
-			System.out.println(index + "->" + indexToSUPMap.get(index));
+		// This method will fulfill indexToSUPMap and indexToSUPMap
+		divideAndFind();
+		
+		File sourceFile = new File(Constant.SOURCE_FOR_DIVIDE_PATH);
+		BufferedReader sourceFileBufferedReader = new BufferedReader(new FileReader(sourceFile));
+		
+		File finalOutputFile = new File(Constant.DIVIDE_SAVE_PATH_PREFIX + sourceFile.getName() +  "_FinalOutput");
+		if (finalOutputFile.exists()) {
+			Util.delFolder(finalOutputFile.getAbsolutePath());
+			finalOutputFile.createNewFile();
 		}
+		FileWriter finalOutputFileWriter = new FileWriter(finalOutputFile);
+		
+		String sourceItem = null;
+		while((sourceItem = sourceFileBufferedReader.readLine()) != null) {
+			String index = Util.getIndexFromItem(sourceItem);
+			String content = Util.getContentFromItem(sourceItem);
+			String SUPLength = indexToSUPLengthMap.get(index);
+			String SUP = indexToSUPMap.get(index);
+			String destItem = index + "|" + SUPLength + "|" + SUP + "|" + content + "\n";
+			finalOutputFileWriter.write(destItem);
+		}
+		sourceFileBufferedReader.close();
+		finalOutputFileWriter.close();
 	}
 	
-	private Map<String, String> divideAndFind() throws Exception {
+	private void divideAndFind() throws Exception {
 		// create workspace
 		File fileRoot = new File(Constant.DIVIDE_SAVE_PATH_PREFIX + "FileRoot\\");
 		if (fileRoot.exists()) {
@@ -40,11 +60,10 @@ public class ShortestUniquePrefixFinder {
 		
 		// clean result map
 		indexToSUPMap.clear();
+		indexToSUPLengthMap.clear();
 		
 		// divide recursively
 		doDivideAndFind(initFilePath, 0);
-		
-		return indexToSUPMap;
 	}
 	
 	// divide and fulfill indexToSUPMap 
@@ -173,6 +192,7 @@ public class ShortestUniquePrefixFinder {
 					}
 				}
 				indexToSUPMap.put(index, sb.toString());
+				indexToSUPLengthMap.put(index, Integer.valueOf(node.level).toString());
 			}
 			return true;
 		}
@@ -184,8 +204,16 @@ public class ShortestUniquePrefixFinder {
 		for (String index : node.indexSet) {
 			List<BigInteger> progressionList = progressionMap.get(index);
 			// if progression is not enough long, use special symbol for marking it and continue
-			if (node.level > progressionList.size()-1) {
-				indexToSUPMap.put(index, "length > " + Integer.valueOf(node.level));
+			if (node.level > progressionList.size() - 1) {
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i <= progressionList.size() - 1; i++) {
+					sb.append(progressionMap.get(index).get(i));
+					if (i != progressionList.size() - 1) {
+						sb.append(',');
+					}
+				}
+				indexToSUPMap.put(index, sb.toString());
+				indexToSUPLengthMap.put(index, ">" + Integer.valueOf(node.level));
 				continue;
 			}
 			BigInteger divideNorm = progressionMap.get(index).get(node.level);

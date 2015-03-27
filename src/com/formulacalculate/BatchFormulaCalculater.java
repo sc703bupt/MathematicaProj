@@ -145,8 +145,7 @@ public class BatchFormulaCalculater extends Thread{
 	}
 	
 	public static void main(String[] args) throws Exception {
-		List<Integer> skipIDList = 
-			Arrays.asList(new Integer[]{94});
+		List<Integer> skipIDList = Arrays.asList(new Integer[]{94});
 		// 50 : running costs too much time
 		// 94 : web page parse error
 		// 238 : running costs too much time

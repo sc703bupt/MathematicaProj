@@ -6,6 +6,7 @@ public class Constant {
 	public final static int INDEX_WIDTH = 6; // not including leading 'A'
 	public final static long CALCULATE_TIME_OUT = 20000; // 20s
 	public final static int PROGRESSION_LENGTH = 100;
+	public final static int PROGRESSION_MAX_VALUE = 10000000;
 	public final static int FILE_PATH_LIMIT = 240;
 	public final static int SINGLE_FILE_ITEM_COUNT_VALVE = 100;
 	public final static int SUP_INIT_FILE_NAME = 10000;
