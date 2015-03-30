@@ -17,7 +17,8 @@ public class FileParser extends Thread {
 	private FileWriter expressionFileWriter;
 	private FileWriter logFileWriter;
 			
-	FileParser(int startID, int endID){
+
+	public FileParser(int startID, int endID){
 		this.filePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX");
 		this.startID = startID;
 		this.endID = endID;
@@ -26,6 +27,7 @@ public class FileParser extends Thread {
 	void init () {
 		String sampleDataFile = Config.getAttri("SAMPLE_FILE_SAVE_PATH_PREFIX") + this.getName();
 		String expressionFile = Config.getAttri("EXPRESSION_FILE_SAVE_PATH_PREFIX") + this.getName();
+
 		try {
 			sampleDataFileWriter = new FileWriter(new File(sampleDataFile), true);
 			expressionFileWriter = new FileWriter(new File(expressionFile), true);
@@ -45,7 +47,6 @@ public class FileParser extends Thread {
 			System.out.println(e.toString());
 		}
 	}
-	
 	
 	void finalizeFunc() {
 		try {
@@ -99,8 +100,12 @@ public class FileParser extends Thread {
 	
 	public ParseResult parseFile(int fileID) {
 		String fileFullName = Util.getIndexFromID(fileID);
-		String fileName = filePath + fileFullName;
-		File file = new File(fileName);
+		//String fileName = filePath + fileFullName;
+		return parseFile(filePath, fileFullName);
+	}
+	
+	public ParseResult parseFile(String filePath, String fileFullName) {
+		File file = new File(filePath + fileFullName);
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(file));
@@ -134,6 +139,8 @@ public class FileParser extends Thread {
             } else {
             	sample = tempString.substring(sampleStartIndex + startTag.length()).trim();
                 sample = sample.substring(0, sample.length() - endTag.length());
+                //remove <wbr> tag. <wbr> appears when very large number exists in sample data
+                sample = sample.replaceAll("<wbr>", "");
                 //System.out.println(sample);
                 //write to file              
                 Util.write(sampleDataFileWriter, fileFullName + ":" + sample + "\n");             
@@ -164,15 +171,22 @@ public class FileParser extends Thread {
             
             String emptyStr = "";
             tempString = tempString.trim();
-            String expression = null;
+            String partOfExpression = null;
+            String expression = "";
             while (tempString.compareTo(emptyStr) != 0) {
             	int expressionStartIndex = tempString.indexOf(startTag);
-            	expression = tempString.substring(expressionStartIndex + startTag.length()).trim();
-            	expression = expression.substring(0, expression.length() - endTag.length());
-            	expression = SymbolReplacer.replaceSymbolForOneItem(expression);
-            	expression = SymbolReplacer.replaceDataRangeForOneItem(expression);
-            	Util.write(expressionFileWriter, fileFullName + ":" + expression + "\n"); 
-            	
+            	partOfExpression = tempString.substring(expressionStartIndex + startTag.length()).trim();
+            	partOfExpression = partOfExpression.substring(0, partOfExpression.length() - endTag.length());
+            	partOfExpression = SymbolReplacer.replaceSymbolForOneItem(partOfExpression);
+            	partOfExpression = SymbolReplacer.replaceDataRangeForOneItem(partOfExpression);  
+            	expression += partOfExpression;
+            	/*By default, very expression ends up with (* XXX *). 
+            	We use this pattern to deal with expressions that have multiple lines*/
+            	if (partOfExpression.endsWith("*)")) {
+            		Util.write(expressionFileWriter, fileFullName + ":" + expression + "\n");
+            		expression = "";
+            	}
+            	 
             	//find next MATHEMATICA
             	for (int i = 0; i < 2 && (tempString = reader.readLine()) != null; i++) {
                 	//read 2 lines
@@ -180,6 +194,7 @@ public class FileParser extends Thread {
                 if (tempString == null) {
                 	return ParseResult.FORMATERROR;
                 }
+               
             	tempString = tempString.trim();
             }
            
@@ -196,6 +211,6 @@ public class FileParser extends Thread {
                 } catch (IOException e1) {
                 }
             }
-        }		
+        }
 	}
 }

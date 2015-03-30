@@ -1,5 +1,6 @@
 package com.config;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,21 +8,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+
 public class Config {
 	private static Config config = new Config();
 	private static Map<String, String> attriMap = new HashMap<String, String>();
-	
+
+	//	private static String SERIESE_FILE_PATH = "C:\\Users\\Lee\\Desktop\\demo_result_A000000_A030000.txt"; 
 	public static Config getInstance()
 	{
 		return config;
 	}
 
-	private Config()
+	public Config()
 	{
 		Properties p = new Properties();
 		try
 		{
-			InputStream in = this.getClass().getClassLoader().getResourceAsStream("config/config.properties");
+			//System.out.println(this.);
+			//FileInputStream in = new FileInputStream("/com/config/config.properties");
+			InputStream in = this.getClass().getClassLoader().getResourceAsStream("com/config/config.properties");
 			p.load(in);
 			in.close();
 		}
@@ -44,6 +49,7 @@ public class Config {
 		setAttri("FILE_PARSER_LOG_SAVE_PATH_PREFIX", p.getProperty("FILE_PARSER_LOG_SAVE_PATH_PREFIX"));
 		setAttri("EXPRESSION_FILE_PATH", p.getProperty("EXPRESSION_FILE_PATH"));
 		setAttri("PROGRESSION_LENGTH", p.getProperty("PROGRESSION_LENGTH"));
+		setAttri("SERIESE_FILE_PATH", p.getProperty("SERIESE_FILE_PATH"));
 		
 		// only for package:formulacalculate
 		setAttri("TOTAL_PAGES_COUNT", p.getProperty("TOTAL_PAGES_COUNT"));
