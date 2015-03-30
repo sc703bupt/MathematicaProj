@@ -18,14 +18,14 @@ public class FileParser extends Thread {
 	private FileWriter logFileWriter;
 			
 	FileParser(int startID, int endID){
-		this.filePath = Config.getWEB_PAGE_SAVE_PATH_PREFIX();
+		this.filePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX");
 		this.startID = startID;
 		this.endID = endID;
 	}
 	
 	void init () {
-		String sampleDataFile = Config.getSAMPLE_FILE_SAVE_PATH_PREFIX() + this.getName();
-		String expressionFile = Config.getEXPRESSION_FILE_SAVE_PATH_PREFIX() + this.getName();
+		String sampleDataFile = Config.getAttri("SAMPLE_FILE_SAVE_PATH_PREFIX") + this.getName();
+		String expressionFile = Config.getAttri("EXPRESSION_FILE_SAVE_PATH_PREFIX") + this.getName();
 		try {
 			sampleDataFileWriter = new FileWriter(new File(sampleDataFile), true);
 			expressionFileWriter = new FileWriter(new File(expressionFile), true);
@@ -35,7 +35,7 @@ public class FileParser extends Thread {
 		
 		File logFile = null;
 		try {
-			logFile = new File(Config.getFILE_PARSER_LOG_SAVE_PATH_PREFIX() + this.getName());
+			logFile = new File(Config.getAttri("FILE_PARSER_LOG_SAVE_PATH_PREFIX") + this.getName());
 			if (!logFile.exists()) {
 				logFile.createNewFile();
 			}

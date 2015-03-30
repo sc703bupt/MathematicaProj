@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.config.Config;
 import com.util.*;
 
 public class ShortestUniquePrefixFinder {
@@ -22,10 +23,10 @@ public class ShortestUniquePrefixFinder {
 		// This method will fulfill indexToSUPMap and indexToSUPMap
 		divideAndFind();
 		
-		File sourceFile = new File(Constant.SOURCE_FOR_DIVIDE_PATH);
+		File sourceFile = new File(Config.getAttri("SOURCE_FOR_DIVIDE_PATH"));
 		BufferedReader sourceFileBufferedReader = new BufferedReader(new FileReader(sourceFile));
 		
-		File finalOutputFile = new File(Constant.DIVIDE_SAVE_PATH_PREFIX + sourceFile.getName() +  "_FinalOutput");
+		File finalOutputFile = new File(Config.getAttri("DIVIDE_SAVE_PATH_PREFIX") + sourceFile.getName() +  "_FinalOutput");
 		if (finalOutputFile.exists()) {
 			Util.delFolder(finalOutputFile.getAbsolutePath());
 			finalOutputFile.createNewFile();
@@ -47,16 +48,16 @@ public class ShortestUniquePrefixFinder {
 	
 	private void divideAndFind() throws Exception {
 		// create workspace
-		File fileRoot = new File(Constant.DIVIDE_SAVE_PATH_PREFIX + "FileRoot\\");
+		File fileRoot = new File(Config.getAttri("DIVIDE_SAVE_PATH_PREFIX") + "FileRoot\\");
 		if (fileRoot.exists()) {
 			Util.delFolder(fileRoot.getAbsolutePath());
 		}
 		fileRoot.mkdir();
 		
 		// copy source file to workspace and rename
-		String initFilePath = Constant.DIVIDE_SAVE_PATH_PREFIX + 
-				"FileRoot\\c" + Integer.valueOf(Constant.SUP_INIT_FILE_NAME);
-		Util.copyFile(Constant.SOURCE_FOR_DIVIDE_PATH, initFilePath);
+		String initFilePath = Config.getAttri("DIVIDE_SAVE_PATH_PREFIX") + 
+				"FileRoot\\c" + Integer.valueOf(Config.getAttri("SUP_INIT_FILE_NAME"));
+		Util.copyFile(Config.getAttri("SOURCE_FOR_DIVIDE_PATH"), initFilePath);
 		
 		// clean result map
 		indexToSUPMap.clear();
@@ -76,8 +77,9 @@ public class ShortestUniquePrefixFinder {
 		   if the path is too long or the number of items is less enough, 
 		   stop dividing and calculate USP in memory
 		*/
-		if (sourceFile.getAbsolutePath().length() >= Constant.FILE_PATH_LIMIT ||
-			itemCount <= Constant.SINGLE_FILE_ITEM_COUNT_VALVE) {
+		int filePathLengthLimit = Integer.parseInt(Config.getAttri("FILE_PATH_LENGTH_LIMIT"));
+		int singleFileItemMaxCount = Integer.parseInt(Config.getAttri("SINGLE_FILE_ITEM_MAX_COUNT"));
+		if (sourceFile.getAbsolutePath().length() >= filePathLengthLimit|| itemCount <= singleFileItemMaxCount) {
 			return findInMemory(sourceFile, level);
 		}
 		

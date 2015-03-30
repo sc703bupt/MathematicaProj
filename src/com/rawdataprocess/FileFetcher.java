@@ -9,7 +9,6 @@ import java.net.URLConnection;
 import java.io.*;
 
 import com.config.Config;
-import com.util.Constant;
 import com.util.Util;
 
 
@@ -59,7 +58,7 @@ public class FileFetcher extends Thread{
 		File logFile = null;
 		FileWriter fw = null;
 		try {
-			logFile = new File(Config.getWEB_PAGE_SAVE_PATH_PREFIX() + this.getName());
+			logFile = new File(Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX") + this.getName());
 			if (!logFile.exists()) {
 				logFile.createNewFile();
 			}
@@ -71,8 +70,8 @@ public class FileFetcher extends Thread{
 		
 		for (int i = startID; i <= endID; i++){
 			String fileName = Util.getIndexFromID(i);
-			String httpUrl = Constant.OEIS_URL_PREFIX + fileName;
-			String savedFilePath = Config.getWEB_PAGE_SAVE_PATH_PREFIX() + fileName;
+			String httpUrl = Config.getAttri("OEIS_URL_PREFIX") + fileName;
+			String savedFilePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX")+ fileName;
 			boolean isGood = FileFetcher.httpDownload(httpUrl, savedFilePath);
 			try {
 				if(isGood) {

@@ -3,15 +3,13 @@ package com.config;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-
 
 public class Config {
 	private static Config config = new Config();
-	private static String SAMPLE_FILE_SAVE_PATH_PREFIX = "D:\\sample\\data";
-	private static String EXPRESSION_FILE_SAVE_PATH_PREFIX = "D:\\expr\\replaceExpr";
-	private static String FILE_PARSER_LOG_SAVE_PATH_PREFIX = "D:\\parseLog\\";
-	private static String WEB_PAGE_SAVE_PATH_PREFIX = "D:\\download\\";
+	private static Map<String, String> attriMap = new HashMap<String, String>();
 	
 	public static Config getInstance()
 	{
@@ -36,46 +34,48 @@ public class Config {
 		{
 			System.out.print("loading failed\n");
 			e.printStackTrace();
-		}
+		}	
 		
-		setSAMPLE_FILE_SAVE_PATH_PREFIX(p.getProperty("SAMPLE_FILE_SAVE_PATH_PREFIX"));
-		setEXPRESSION_FILE_SAVE_PATH_PREFIX(p.getProperty("EXPRESSION_FILE_SAVE_PATH_PREFIX"));
-		setFILE_PARSER_LOG_SAVE_PATH_PREFIX(p.getProperty("FILE_PARSER_LOG_SAVE_PATH_PREFIX"));
+		// only for package:rawdataprocess
+		setAttri("OEIS_URL_PREFIX", p.getProperty("OEIS_URL_PREFIX"));
+		setAttri("SAMPLE_FILE_SAVE_PATH_PREFIX", p.getProperty("SAMPLE_FILE_SAVE_PATH_PREFIX"));
+		setAttri("EXPRESSION_FILE_SAVE_PATH_PREFIX", p.getProperty("EXPRESSION_FILE_SAVE_PATH_PREFIX"));
+		setAttri("WEB_PAGE_SAVE_PATH_PREFIX", p.getProperty("WEB_PAGE_SAVE_PATH_PREFIX"));
+		setAttri("FILE_PARSER_LOG_SAVE_PATH_PREFIX", p.getProperty("FILE_PARSER_LOG_SAVE_PATH_PREFIX"));
+		setAttri("EXPRESSION_FILE_PATH", p.getProperty("EXPRESSION_FILE_PATH"));
+		setAttri("PROGRESSION_LENGTH", p.getProperty("PROGRESSION_LENGTH"));
+		
+		// only for package:formulacalculate
+		setAttri("TOTAL_PAGES_COUNT", p.getProperty("TOTAL_PAGES_COUNT"));
+		setAttri("CALCULATE_TIME_OUT", p.getProperty("CALCULATE_TIME_OUT"));
+		setAttri("JLINK_DIR", p.getProperty("JLINK_DIR"));
+		setAttri("KENERL_ARGV", p.getProperty("KENERL_ARGV"));
+		setAttri("SAMPLE_FILE_PATH", p.getProperty("SAMPLE_FILE_PATH"));
+		setAttri("PROGRESSION_MAX_VALUE", p.getProperty("PROGRESSION_MAX_VALUE"));
+		setAttri("FORMULA_CALCULATED_SAVE_PATH_PREFIX", p.getProperty("FORMULA_CALCULATED_SAVE_PATH_PREFIX"));
+		setAttri("FORMULA_CALCULATE_LOG_PATH_PREFIX", p.getProperty("FORMULA_CALCULATE_LOG_PATH_PREFIX"));
+		setAttri("FORMULA_STATICATICS_LOG_PREFIX", p.getProperty("FORMULA_STATICATICS_LOG_PREFIX"));
+		setAttri("IS_DETAIL_CALCULATION_LOG", p.getProperty("IS_DETAIL_CALCULATION_LOG"));
+		
+		// only for package:shorestuniqueprefix
+		setAttri("SOURCE_FOR_DIVIDE_PATH", p.getProperty("SOURCE_FOR_DIVIDE_PATH"));
+		setAttri("DIVIDE_SAVE_PATH_PREFIX", p.getProperty("DIVIDE_SAVE_PATH_PREFIX"));
+		setAttri("FILE_PATH_LENGTH_LIMIT", p.getProperty("FILE_PATH_LENGTH_LIMIT"));
+		setAttri("SUP_INIT_FILE_NAME", p.getProperty("SUP_INIT_FILE_NAME"));
+		setAttri("SINGLE_FILE_ITEM_MAX_COUNT", p.getProperty("SINGLE_FILE_ITEM_MAX_COUNT"));
+
+		// only for pakcage:util
+		setAttri("INDEX_WIDTH", p.getProperty("INDEX_WIDTH"));
+		
+		// for both package:rawdataprocess and package:formulacalculate
+		setAttri("REPLACED_EXPRESSION_FILE_PATH", p.getProperty("REPLACED_EXPRESSION_FILE_PATH"));
 	}
 
-	public static String getSAMPLE_FILE_SAVE_PATH_PREFIX() {
-		return SAMPLE_FILE_SAVE_PATH_PREFIX;
+	public static void setAttri(String attriName, String attriValue) {
+		attriMap.put(attriName, attriValue);
 	}
-
-	public static void setSAMPLE_FILE_SAVE_PATH_PREFIX(
-			String sAMPLE_FILE_SAVE_PATH_PREFIX) {
-		SAMPLE_FILE_SAVE_PATH_PREFIX = sAMPLE_FILE_SAVE_PATH_PREFIX;
-	}
-
-	public static String getEXPRESSION_FILE_SAVE_PATH_PREFIX() {
-		return EXPRESSION_FILE_SAVE_PATH_PREFIX;
-	}
-
-	public static void setEXPRESSION_FILE_SAVE_PATH_PREFIX(
-			String eXPRESSION_FILE_SAVE_PATH_PREFIX) {
-		EXPRESSION_FILE_SAVE_PATH_PREFIX = eXPRESSION_FILE_SAVE_PATH_PREFIX;
-	}
-
-	public static String getFILE_PARSER_LOG_SAVE_PATH_PREFIX() {
-		return FILE_PARSER_LOG_SAVE_PATH_PREFIX;
-	}
-
-	public static void setFILE_PARSER_LOG_SAVE_PATH_PREFIX(
-			String fILE_PARSER_LOG_SAVE_PATH_PREFIX) {
-		FILE_PARSER_LOG_SAVE_PATH_PREFIX = fILE_PARSER_LOG_SAVE_PATH_PREFIX;
-	}
-
-	public static String getWEB_PAGE_SAVE_PATH_PREFIX() {
-		return WEB_PAGE_SAVE_PATH_PREFIX;
-	}
-
-	public static void setWEB_PAGE_SAVE_PATH_PREFIX(
-			String wEB_PAGE_SAVE_PATH_PREFIX) {
-		WEB_PAGE_SAVE_PATH_PREFIX = wEB_PAGE_SAVE_PATH_PREFIX;
+	
+	public static String getAttri(String attriName) {
+		return attriMap.get(attriName);
 	}
 }

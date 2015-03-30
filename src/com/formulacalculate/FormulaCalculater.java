@@ -8,7 +8,7 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.util.Constant;
+import com.config.Config;
 import com.util.Util;
 import com.wolfram.jlink.*;
 
@@ -16,9 +16,9 @@ public class FormulaCalculater {
 	private KernelLink kernelLink;
 	
 	public FormulaCalculater() {
-		System.setProperty("com.wolfram.jlink.libdir", Constant.JLINK_DIR);
+		System.setProperty("com.wolfram.jlink.libdir", Config.getAttri("JLINK_DIR"));
 		try {
-			kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
+			kernelLink = MathLinkFactory.createKernelLink(Config.getAttri("KENERL_ARGV"));
 			kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
 		} catch (MathLinkException e) {
 			System.out.println("Fatal error opening link: " + e.getMessage());
@@ -31,8 +31,9 @@ public class FormulaCalculater {
 	// leave sample null means don't compare
 	public List<BigInteger> calculateToList(List<String> singleExprList, String sample, String index, FileWriter statLogFileWriter) throws Exception {
 		FileWriter currentIndexLogFileWriter = null;
-		if (Constant.IS_DETAIL_CALCULATION_LOG) {
-			File currentIndexlogFile = new File(Constant.FORMULA_CALCULATE_LOG_PATH_PREFIX + index);
+		Boolean isDetailCalculationLog = Boolean.parseBoolean(Config.getAttri("IS_DETAIL_CALCULATION_LOG"));
+		if (isDetailCalculationLog) {
+			File currentIndexlogFile = new File(Config.getAttri("FORMULA_CALCULATE_LOG_PATH_PREFIX") + index);
 			if (currentIndexlogFile.exists()) {
 				currentIndexlogFile.delete();
 			}
@@ -41,19 +42,19 @@ public class FormulaCalculater {
 		}
 		
 		if (kernelLink == null) {
-			kernelLink = MathLinkFactory.createKernelLink(Constant.KENERL_ARGV);
+			kernelLink = MathLinkFactory.createKernelLink(Config.getAttri("KENERL_ARGV"));
 			kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
 		}
 		
 		if (singleExprList == null || singleExprList.isEmpty()) {
-			if (Constant.IS_DETAIL_CALCULATION_LOG) {
+			if (isDetailCalculationLog) {
 				currentIndexLogFileWriter.write("singelExprList is null or empty.\n");
 				currentIndexLogFileWriter.close();	
 			}
 			return null;
 		}
 		
-		if (Constant.IS_DETAIL_CALCULATION_LOG) {
+		if (isDetailCalculationLog) {
 			currentIndexLogFileWriter.write("For index " + index + "\n");
 			currentIndexLogFileWriter.write("Number of expressions: " + new Integer(singleExprList.size()) + "\n");	
 		}
@@ -72,32 +73,32 @@ public class FormulaCalculater {
 		for (String singleExpr : singleExprList) {
 			List<BigInteger> singleRet = getFromSingleExpr(singleExpr, index, statLogFileWriter);
 			if (singleRet == null) {
-				if (Constant.IS_DETAIL_CALCULATION_LOG) {
+				if (isDetailCalculationLog) {
 					currentIndexLogFileWriter.write("failed to calculate: " + singleExpr + "\n");	
 				}
 				continue;
 			}
 			if (singleRet.isEmpty()) {
-				if (Constant.IS_DETAIL_CALCULATION_LOG) {
+				if (isDetailCalculationLog) {
 					currentIndexLogFileWriter.write("success to calculate but get empty result: " + 
 							singleExpr + "\n");	
 				}
 				continue;
 			}
 			if (!compareTwoBigIntegerList(sampleNumberList, singleRet)) {
-				if (Constant.IS_DETAIL_CALCULATION_LOG) {
+				if (isDetailCalculationLog) {
 					currentIndexLogFileWriter.write("success to calculate but inconsistent with sample: " + 
 							singleExpr + "\n");	
 				}
 				continue;
 			}
-			if (Constant.IS_DETAIL_CALCULATION_LOG) {
+			if (isDetailCalculationLog) {
 				currentIndexLogFileWriter.write("success to calculate: " + singleExpr + "\n");
 				currentIndexLogFileWriter.close();
 			}
 			return singleRet;
 		}
-		if (Constant.IS_DETAIL_CALCULATION_LOG) {
+		if (isDetailCalculationLog) {
 			currentIndexLogFileWriter.close();
 		}
 		return null;
@@ -118,16 +119,17 @@ public class FormulaCalculater {
 		try {
 			kernelLink.evaluate("Remove[\"Global`*\"];");// this command cleans all env used before
 			kernelLink.discardAnswer();
-			InterruptTimer timer = new InterruptTimer(Constant.CALCULATE_TIME_OUT, kernelLink);
+			InterruptTimer timer = new InterruptTimer(Integer.parseInt(Config.getAttri("CALCULATE_TIME_OUT")), kernelLink);
 			timer.start();
 			kernelLink.evaluate(expr);
 			kernelLink.waitForAnswer();
 			timer.interrupt();
 			numStrArray = kernelLink.getStringArray1();
 			numberList = new ArrayList<BigInteger>();
+			int progressionMaxValue = Integer.parseInt(Config.getAttri("PROGRESSION_MAX_VALUE"));
 			for (String numStr : numStrArray) {
 				BigInteger num = new BigInteger(numStr);
-				if (num.compareTo(BigInteger.valueOf(Constant.PROGRESSION_MAX_VALUE)) == 1) {
+				if (num.compareTo(BigInteger.valueOf(progressionMaxValue)) == 1) {
 					break;
 				}
 				numberList.add(num);

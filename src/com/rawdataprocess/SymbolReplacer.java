@@ -10,14 +10,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
-import com.util.Constant;
+
+import com.config.Config;
 import com.util.Util;
 
 public class SymbolReplacer {
 	public Map<String, Integer> replace() throws IOException {
 		Map<String, Integer> replaceCountMap = new HashMap<String, Integer>();
-		File exprFile = new File(Constant.EXPRESSION_FILE_PATH);
-		File replacedExprFile = new File(Constant.REPLACED_EXPRESSION_FILE_PATH);
+		File exprFile = new File(Config.getAttri("EXPRESSION_FILE_PATH"));
+		File replacedExprFile = new File(Config.getAttri("REPLACED_EXPRESSION_FILE_PATH"));
 		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
 		if (replacedExprFile.exists()) {
 			replacedExprFile.delete();
@@ -107,10 +108,10 @@ public class SymbolReplacer {
 						String backPart = exprItem.substring(rightBracePos);
 						String[] paraArray = paraString.split(",");
 						if (paraArray.length == 2 && Util.isNumber(paraArray[1].trim())) {// {x, 100}
-							return frontPart + paraArray[0].trim() + ", " + Constant.PROGRESSION_LENGTH + backPart;
+							return frontPart + paraArray[0].trim() + ", " + Config.getAttri("PROGRESSION_LENGTH") + backPart;
 						} else if (paraArray.length == 3 && Util.isNumber(paraArray[1].trim())) {// {x,0,99}
 							BigInteger startNumber = new BigInteger(paraArray[1].trim());
-							BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Constant.PROGRESSION_LENGTH - 1)));
+							BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Integer.parseInt(Config.getAttri("PROGRESSION_LENGTH")) - 1)));
 							return frontPart + paraArray[0].trim() + ", " + paraArray[1].trim() + ", " + expectedEndNumber + backPart;
 						}
 					}
@@ -174,10 +175,10 @@ public class SymbolReplacer {
 						String backPart = exprItem.substring(rightBracePos);
 						String[] paraArray = paraString.split(",");
 						if (paraArray.length == 2 && Util.isNumber(paraArray[1].trim())) {// {x, 100}
-							return frontPart + paraArray[0].trim() + ", " + Constant.PROGRESSION_LENGTH + backPart;
+							return frontPart + paraArray[0].trim() + ", " + Config.getAttri("PROGRESSION_LENGTH") + backPart;
 						} else if (paraArray.length == 3 && Util.isNumber(paraArray[1].trim())) {// {x,0,99}
 							BigInteger startNumber = new BigInteger(paraArray[1].trim());
-							BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Constant.PROGRESSION_LENGTH - 1)));
+							BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Integer.parseInt(Config.getAttri("PROGRESSION_LENGTH")) - 1)));
 							return frontPart + paraArray[0].trim() + ", " + paraArray[1].trim() + ", " + expectedEndNumber + backPart;
 						}
 					}
@@ -208,12 +209,12 @@ public class SymbolReplacer {
 				String frontPart = exprItem.substring(0, leftSquareBracketsPos + 1);
 				String backPart = exprItem.substring(rightSquareBracketsPos);
 				if (Util.isNumber(paraString)) { // [100]
-					return frontPart + Constant.PROGRESSION_LENGTH + backPart;
+					return frontPart + Config.getAttri("PROGRESSION_LENGTH") + backPart;
 				} else { // [0,99] or [0,nn]
 					String[] paraArray = paraString.split(",");
 					if (paraArray.length == 2 && Util.isNumber(paraArray[0].trim())) {
 						BigInteger startNumber = new BigInteger(paraArray[0].trim());
-						BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Constant.PROGRESSION_LENGTH - 1)));
+						BigInteger expectedEndNumber = startNumber.add(new BigInteger(String.valueOf(Integer.parseInt(Config.getAttri("PROGRESSION_LENGTH")) - 1)));
 						return frontPart + paraArray[0].trim() + ", " + expectedEndNumber + backPart;
 					}
 				}

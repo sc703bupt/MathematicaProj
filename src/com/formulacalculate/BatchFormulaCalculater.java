@@ -7,7 +7,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import com.util.Constant;
+
+import com.config.Config;
 import com.util.Util;
 
 public class BatchFormulaCalculater extends Thread{
@@ -17,7 +18,8 @@ public class BatchFormulaCalculater extends Thread{
 	
 	public BatchFormulaCalculater(int startID, int endID, List<Integer> skipIDList) {
 		this.startID = startID < 1 ? 1: startID;
-		this.endID = endID > Constant.TOTAL_PAGES_COUNT ? Constant.TOTAL_PAGES_COUNT : endID;
+		this.endID = endID > Integer.parseInt(Config.getAttri("TOTAL_PAGES_COUNT")) ? 
+				Integer.parseInt(Config.getAttri("TOTAL_PAGES_COUNT")) : endID;
 		this.skipIDList = skipIDList;
 	}
 	
@@ -33,13 +35,13 @@ public class BatchFormulaCalculater extends Thread{
 	public void batchCalculate() throws Exception {
 		long startTime = System.currentTimeMillis();
 
-		File sampleFile = new File(Constant.SAMPLE_FILE_PATH);
-		File exprFile = new File(Constant.REPLACED_EXPRESSION_FILE_PATH);
+		File sampleFile = new File(Config.getAttri("SAMPLE_FILE_PATH"));
+		File exprFile = new File(Config.getAttri("REPLACED_EXPRESSION_FILE_PATH"));
 		BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
 		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
 		
 		// override by default
-		File statLogFile = new File(Constant.FORMULA_STATICATICS_LOG_PREFIX + 
+		File statLogFile = new File(Config.getAttri("FORMULA_STATICATICS_LOG_PREFIX") + 
 				"_" + new Integer(startID) + "_" + new Integer(endID));
 		if (statLogFile.exists()) {
 			statLogFile.delete();
@@ -48,7 +50,7 @@ public class BatchFormulaCalculater extends Thread{
 		FileWriter statLogFileWriter = new FileWriter(statLogFile);
 		
 		// override by default
-		File formulaCalculatedFile = new File(Constant.FORMULA_CALCULATED_SAVE_PATH_PREFIX + 
+		File formulaCalculatedFile = new File(Config.getAttri("FORMULA_CALCULATED_SAVE_PATH_PREFIX") + 
 				"_" + new Integer(startID) + "_" + new Integer(endID));
 		if (formulaCalculatedFile.exists()) {
 			formulaCalculatedFile.delete();

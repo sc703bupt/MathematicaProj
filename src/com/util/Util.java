@@ -9,11 +9,13 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
+import com.config.Config;
+
 public class Util {
 	public static String getIndexFromID(int id) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(id);
-		for (int i = sb.length(); i < Constant.INDEX_WIDTH; i++) {
+		for (int i = sb.length(); i < Integer.parseInt(Config.getAttri("INDEX_WIDTH")); i++) {
 			sb.insert(0, "0");
 		}
 		sb.insert(0, 'A');
@@ -30,11 +32,11 @@ public class Util {
 	}
 	
 	public static String getIndexFromItem(String item) {
-		return item.substring(0, Constant.INDEX_WIDTH + 1);
+		return item.substring(0, Integer.parseInt(Config.getAttri("INDEX_WIDTH")) + 1);
 	}
 	
 	public static String getContentFromItem(String item) {
-		return item.substring(Constant.INDEX_WIDTH + 2);
+		return item.substring(Integer.parseInt(Config.getAttri("INDEX_WIDTH")) + 2);
 	}
 	
 	public static void write(FileWriter writer, String content) {          
