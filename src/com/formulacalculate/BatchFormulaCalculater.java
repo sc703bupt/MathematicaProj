@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import com.config.Config;
 import com.util.Util;
@@ -14,22 +14,25 @@ import com.util.Util;
 public class BatchFormulaCalculater extends Thread{
 	private int startID;
 	private int endID;
-	List<Integer> skipIDList;
+	private List<Integer> skipIDList;
+	private Semaphore semp;
 	
-	public BatchFormulaCalculater(int startID, int endID, List<Integer> skipIDList) {
-		this.startID = startID < 1 ? 1: startID;
-		this.endID = endID > Integer.parseInt(Config.getAttri("TOTAL_PAGES_COUNT")) ? 
-				Integer.parseInt(Config.getAttri("TOTAL_PAGES_COUNT")) : endID;
+	public BatchFormulaCalculater(int startID, int endID, List<Integer> skipIDList, Semaphore semp) {
+		this.startID = startID;
+		this.endID = endID;
 		this.skipIDList = skipIDList;
+		this.semp = semp;
 	}
 	
 	public void run() {
 		try {
+			semp.acquire();
 			batchCalculate();
+			System.out.println("Task for " + startID + " to " + endID +" is done.");
+			semp.release();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Task for " + startID + " to " + endID +" is done.");
 	}
 	
 	public void batchCalculate() throws Exception {
@@ -144,23 +147,5 @@ public class BatchFormulaCalculater extends Thread{
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
 		statLogFileWriter.close();
-	}
-	
-	public static void main(String[] args) throws Exception {
-		List<Integer> skipIDList = Arrays.asList(new Integer[]{94});
-		// 50 : running costs too much time
-		// 94 : web page parse error
-		// 238 : running costs too much time
-		// 341 : running costs too much time
-		// 534 : running costs too much time
-		//BatchFormulaCalculater bfc1 = new BatchFormulaCalculater(200, 300, null); 
-		//BatchFormulaCalculater bfc2 = new BatchFormulaCalculater(1001, 2000, skipIDList);
-		//bfc1.start();
-		//bfc2.start();
-		
-		for (int i = 3; i <= 3; i++) {
-			BatchFormulaCalculater bfc = new BatchFormulaCalculater(10000 * i + 1, 10000 * (i + 1), null);
-			bfc.start();
-		}
 	}
 }
