@@ -4,3 +4,4 @@ src/com/util/UtilTester.java
 src/com/formulacalculate/SpliterTester.java
 src/com/config/config.properties
 .settings/
+data/
