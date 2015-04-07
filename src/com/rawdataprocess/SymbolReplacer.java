@@ -15,27 +15,6 @@ import com.config.Config;
 import com.util.Util;
 
 public class SymbolReplacer {
-	public Map<String, Integer> replace() throws IOException {
-		Map<String, Integer> replaceCountMap = new HashMap<String, Integer>();
-		File exprFile = new File(Config.getAttri("EXPRESSION_FILE_PATH"));
-		File replacedExprFile = new File(Config.getAttri("REPLACED_EXPRESSION_FILE_PATH"));
-		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
-		if (replacedExprFile.exists()) {
-			replacedExprFile.delete();
-		}
-		replacedExprFile.createNewFile();
-		FileWriter replacedExprFileWriter = new FileWriter(replacedExprFile);
-		String exprItem = null;
-		while ((exprItem = exprFileBufferedReader.readLine()) != null) {
-			exprItem = replaceSymbolForOneItem(exprItem);
-			exprItem = replaceDataRangeForOneItem(exprItem);
-			replacedExprFileWriter.write(exprItem + "\n");
-		}
-		exprFileBufferedReader.close();
-		replacedExprFileWriter.close();
-		return replaceCountMap;
-	}
-	
 	public static String replaceSymbolForOneItem(String exprItem) {
 		exprItem = exprItem.replaceAll("&lt;","<");
 		exprItem = exprItem.replaceAll("&gt;",">");
@@ -224,19 +203,5 @@ public class SymbolReplacer {
  		
 		// no replacement, return exprItem itself
 		return exprItem;
-	}
-	
-	public static void main(String[] args) throws IOException {
-		SymbolReplacer ssp = new SymbolReplacer();
-		ssp.replace();
-		/*
-		while(true) {
-			System.out.println("Please enter expr:");
-			Scanner s = new Scanner(System.in);
-			String expr = s.nextLine();
-			System.out.println(ruleOne(expr));
-			System.out.println("--");
-		}
-		*/
 	}
 }

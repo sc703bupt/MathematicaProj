@@ -1,6 +1,5 @@
 package com.config;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +10,7 @@ import java.util.Properties;
 
 public class Config {
 	private static Config config = new Config();
-	private static Map<String, String> attriMap = new HashMap<String, String>();
+	private static Map<String, String> attriMap;
 
 	//	private static String SERIESE_FILE_PATH = "C:\\Users\\Lee\\Desktop\\demo_result_A000000_A030000.txt"; 
 	public static Config getInstance()
@@ -19,9 +18,10 @@ public class Config {
 		return config;
 	}
 
-	public Config()
+	private Config()
 	{
 		Properties p = new Properties();
+		attriMap = new HashMap<String, String>();
 		try
 		{
 			//System.out.println(this.);

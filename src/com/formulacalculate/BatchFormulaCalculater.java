@@ -39,7 +39,7 @@ public class BatchFormulaCalculater extends Thread{
 		long startTime = System.currentTimeMillis();
 
 		File sampleFile = new File(Config.getAttri("SAMPLE_FILE_PATH"));
-		File exprFile = new File(Config.getAttri("REPLACED_EXPRESSION_FILE_PATH"));
+		File exprFile = new File(Config.getAttri("EXPRESSION_FILE_PATH"));
 		BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
 		BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
 		

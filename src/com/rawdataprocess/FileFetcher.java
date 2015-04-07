@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.Semaphore;
 import java.io.*;
 
 import com.config.Config;
@@ -15,13 +16,22 @@ import com.util.Util;
 public class FileFetcher extends Thread{
 	private int startID;
 	private int endID;
-	FileFetcher(int startID, int endID) {
+	private Semaphore semp;
+	public FileFetcher(int startID, int endID, Semaphore semp) {
 		this.startID = startID;
 		this.endID = endID;
+		this.semp = semp;
 	}
 	
 	public void run() {
+		try {
+			semp.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		fetchAllFiles();
+		semp.release();
 	}
 	
 	public static boolean httpDownload(String httpUrl,String saveFile) {
@@ -51,14 +61,15 @@ public class FileFetcher extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
             return false;
-        }
+        } 
     }
 	
 	public void fetchAllFiles() {		
 		File logFile = null;
 		FileWriter fw = null;
-		try {
-			logFile = new File(Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX") + this.getName());
+		try {			
+			logFile = new File(Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX") + 
+					"log_" + new Integer(startID) + "_" + new Integer(endID));
 			if (!logFile.exists()) {
 				logFile.createNewFile();
 			}
