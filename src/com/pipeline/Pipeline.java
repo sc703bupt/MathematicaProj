@@ -2,8 +2,10 @@ package com.pipeline;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -11,7 +13,9 @@ import java.util.concurrent.Semaphore;
 import com.config.Config;
 import com.formulacalculate.BatchFormulaCalculater;
 import com.rawdataprocess.FileFetcher;
+import com.rawdataprocess.FileParser;
 import com.shortesetuniqueprefix.ShortestUniquePrefixFinder;
+import com.util.Util;
 
 public class Pipeline {
 	public static void main(String[] args) {
@@ -20,19 +24,18 @@ public class Pipeline {
 	}
 	
 	public void execute(int startId, int endId) {
-		int totalPageCount = Integer.parseInt(Config.getAttri("TOTAL_PAGES_COUNT"));
+		int totalPageCount = Util.getTotalPageCountFromFile();
 		startId = (startId <= totalPageCount) ? totalPageCount + 1 : startId; 
 		initDataDir();
 		try {
 			callFileFetcher(startId, endId);
-			//callFileParser();
+			callFileParser(startId, endId);
 			//callBatchFormulaCalculater(0, 0);
 			//callShortestUniquePrefixFinder();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.print("");
 	}
 	
 	// ensure clean and correct data space
@@ -41,10 +44,13 @@ public class Pipeline {
 		String rawDataProcessDirPath = "data\\rawDataProcess";
 		String shortestUniquePrefixDirPath = "data\\shortestUniquePrefix";
 		String webPageSavePathPrefix = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX");
+		String logSavePathPrefix = Config.getAttri("LOG_SAVE_PATH_PREFIX");
+		
 		File formulaCalculateDirFile = new File(formulaCalculateDirPath);
 		File rawDataProcessDirFile = new File(rawDataProcessDirPath);
 		File shortestUniquePrefixDirFile = new File(shortestUniquePrefixDirPath);
 		File webPageSavePathPrefixDirFile = new File(webPageSavePathPrefix);
+		File logSavePathPrefixDirFile = new File(logSavePathPrefix);
 		
 		if (!formulaCalculateDirFile.exists()) {
 			formulaCalculateDirFile.mkdirs();
@@ -72,12 +78,22 @@ public class Pipeline {
 				shortestUniquePrefixDirFile.mkdirs();
 			}
 		}
+		
 		if (!webPageSavePathPrefixDirFile.exists()) {
 			webPageSavePathPrefixDirFile.mkdirs();
 		} else {
 			if (webPageSavePathPrefixDirFile.isFile()) {
 				webPageSavePathPrefixDirFile.delete();
 				webPageSavePathPrefixDirFile.mkdirs();
+			}
+		}
+		
+		if (!logSavePathPrefixDirFile.exists()) {
+			logSavePathPrefixDirFile.mkdirs();
+		} else {
+			if (logSavePathPrefixDirFile.isFile()) {
+				logSavePathPrefixDirFile.delete();
+				logSavePathPrefixDirFile.mkdirs();
 			}
 		}
 	}
@@ -93,7 +109,6 @@ public class Pipeline {
         }
         final Semaphore semp = new Semaphore(numberOfThread);
 		for (int i = 0; i <= numberOfThread - 1; i++) {
-			//BatchFormulaCalculater bfc = null;
 			FileFetcher ff = null;
 			if (i != numberOfThread - 1) {
 				ff = new FileFetcher(startId + batchSingleThreadAbility * i, startId + batchSingleThreadAbility * (i + 1) - 1, semp);
@@ -111,8 +126,79 @@ public class Pipeline {
 	}
 	
 	// TODO(shenchen):impl
-	public void callFileParser() {
+	public void callFileParser(int startId, int endId) throws Exception {
+		ExecutorService pool = Executors.newCachedThreadPool();
+        int totalItemCount = endId - startId + 1;
+        int batchSingleThreadAbility = Integer.parseInt(Config.getAttri("BATCH_SINGLE_THREAD_ABILITY"));
+        int numberOfThread = totalItemCount / batchSingleThreadAbility;
+        if (totalItemCount % batchSingleThreadAbility != 0) {
+        	numberOfThread += 1;
+        }
+        final Semaphore semp = new Semaphore(numberOfThread);
+		for (int i = 0; i <= numberOfThread - 1; i++) {
+			FileParser fp = null;
+			if (i != numberOfThread - 1) {
+				fp = new FileParser(startId + batchSingleThreadAbility * i, startId + batchSingleThreadAbility * (i + 1) - 1, semp);
+			} else {
+				fp = new FileParser(startId + batchSingleThreadAbility * i, endId, semp);
+			}
+			pool.execute(fp);
+		}
 		
+		// no continue until all batch tasks are done
+		while (semp.availablePermits() != numberOfThread) {
+			Thread.sleep(1000);
+		}
+        pool.shutdown();
+
+        File sampleMergedFile = new File(Config.getAttri("SAMPLE_FILE_PATH"));
+        FileWriter sampleMergedFileWriter = new FileWriter(sampleMergedFile, true);
+        
+        File exprMergedFile = new File(Config.getAttri("EXPRESSION_FILE_PATH"));
+        FileWriter exprMergedFileWriter = new FileWriter(exprMergedFile, true);
+        
+        int totalPagesCount = Util.getTotalPageCountFromFile();
+        for (int i = 0; i <= numberOfThread - 1; i++) {
+        	File sampleFile = null;
+        	File exprFile = null;
+        	if (i != numberOfThread - 1) { 
+        		sampleFile = new File(Config.getAttri("SAMPLE_FILE_PATH") + 
+        				"_" + new Integer(startId + batchSingleThreadAbility * i) + 
+        				"_" + new Integer(startId + batchSingleThreadAbility * (i + 1) - 1));
+        		exprFile = new File(Config.getAttri("EXPRESSION_FILE_PATH") + 
+        				"_" + new Integer(startId + batchSingleThreadAbility * i) + 
+        				"_" + new Integer(startId + batchSingleThreadAbility * (i + 1) - 1));
+        	} else {
+        		sampleFile = new File(Config.getAttri("SAMPLE_FILE_PATH") + 
+        				"_" + new Integer(startId + batchSingleThreadAbility * i) + 
+        				"_" + new Integer(endId));
+        		exprFile = new File(Config.getAttri("EXPRESSION_FILE_PATH") + 
+        				"_" + new Integer(startId + batchSingleThreadAbility * i) + 
+        				"_" + new Integer(endId));
+        	}
+        	//handle sample
+			BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
+			String oneLine = null;
+			while ((oneLine = sampleFileBufferedReader.readLine()) != null) {
+				int index = Integer.parseInt(Util.getIndexFromItem(oneLine).substring(1));
+				totalPagesCount = totalPagesCount > index ? totalPagesCount : index;
+				sampleMergedFileWriter.write(oneLine + "\n");
+			}
+			sampleFileBufferedReader.close();
+			sampleFile.delete();
+			//handle expr
+			BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
+			while ((oneLine = exprFileBufferedReader.readLine()) != null) {
+				exprMergedFileWriter.write(oneLine + "\n");
+			}
+			exprFileBufferedReader.close();
+			exprFile.delete();
+        }
+        sampleMergedFileWriter.close();
+        exprMergedFileWriter.close();
+        
+        System.out.println(totalPagesCount);
+        Util.setTotalPageCount(totalPagesCount);
 	}
 	
 	public void callBatchFormulaCalculater(int startId, int endId) throws Exception {

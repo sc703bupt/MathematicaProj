@@ -1,7 +1,9 @@
 package com.util;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -128,4 +130,43 @@ public class Util {
         }
         return true;
     }
+	
+	public static int getTotalPageCountFromFile () {
+		File totoalPageNumberFile = new File(getTotalPageCountFilePath()); 
+		BufferedReader tpnReader = null;
+		try {
+			tpnReader = new BufferedReader(new FileReader(totoalPageNumberFile));
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		int totalPageCount = 0;
+		try {
+			totalPageCount = Integer.parseInt(tpnReader.readLine());
+			tpnReader.close();
+		} catch (NumberFormatException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return totalPageCount;
+	}
+	
+	public static void setTotalPageCount(int number) {
+		try {
+			FileWriter fw = new FileWriter(new File(getTotalPageCountFilePath()));
+			fw.write(number+"");
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	public static String getTotalPageCountFilePath() {
+		return "total_page_number.txt";
+	}
 }

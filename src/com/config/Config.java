@@ -1,8 +1,11 @@
 package com.config;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -11,21 +14,14 @@ import java.util.Properties;
 public class Config {
 	private static Config config = new Config();
 	private static Map<String, String> attriMap;
-
-	//	private static String SERIESE_FILE_PATH = "C:\\Users\\Lee\\Desktop\\demo_result_A000000_A030000.txt"; 
-	public static Config getInstance()
-	{
-		return config;
-	}
+    private static Properties p;
 
 	private Config()
 	{
-		Properties p = new Properties();
+		p = new Properties();
 		attriMap = new HashMap<String, String>();
 		try
 		{
-			//System.out.println(this.);
-			//FileInputStream in = new FileInputStream("/com/config/config.properties");
 			InputStream in = this.getClass().getClassLoader().getResourceAsStream("com/config/config.properties");
 			p.load(in);
 			in.close();
@@ -43,10 +39,8 @@ public class Config {
 		
 		// only for package:rawdataprocess
 		setAttri("OEIS_URL_PREFIX", p.getProperty("OEIS_URL_PREFIX"));
-		setAttri("SAMPLE_FILE_SAVE_PATH_PREFIX", p.getProperty("SAMPLE_FILE_SAVE_PATH_PREFIX"));
-		setAttri("EXPRESSION_FILE_SAVE_PATH_PREFIX", p.getProperty("EXPRESSION_FILE_SAVE_PATH_PREFIX"));
 		setAttri("WEB_PAGE_SAVE_PATH_PREFIX", p.getProperty("WEB_PAGE_SAVE_PATH_PREFIX"));
-		setAttri("FILE_PARSER_LOG_SAVE_PATH_PREFIX", p.getProperty("FILE_PARSER_LOG_SAVE_PATH_PREFIX"));
+		setAttri("LOG_SAVE_PATH_PREFIX", p.getProperty("LOG_SAVE_PATH_PREFIX"));
 		setAttri("EXPRESSION_FILE_PATH", p.getProperty("EXPRESSION_FILE_PATH"));
 		setAttri("PROGRESSION_LENGTH", p.getProperty("PROGRESSION_LENGTH"));
 		setAttri("SERIESE_FILE_PATH", p.getProperty("SERIESE_FILE_PATH"));
@@ -73,9 +67,6 @@ public class Config {
 
 		// only for pakcage:util
 		setAttri("INDEX_WIDTH", p.getProperty("INDEX_WIDTH"));
-		
-		// for both package:rawdataprocess and package:formulacalculate
-		setAttri("REPLACED_EXPRESSION_FILE_PATH", p.getProperty("REPLACED_EXPRESSION_FILE_PATH"));
 	}
 
 	public static void setAttri(String attriName, String attriValue) {
@@ -85,4 +76,5 @@ public class Config {
 	public static String getAttri(String attriName) {
 		return attriMap.get(attriName);
 	}
+	
 }

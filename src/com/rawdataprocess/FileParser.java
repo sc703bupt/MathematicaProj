@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 
 import com.config.Config;
 import com.util.Util;
@@ -13,20 +14,24 @@ public class FileParser extends Thread {
 	private String filePath;
 	private int startID;
 	private int endID;
+	private Semaphore semp;
 	private FileWriter sampleDataFileWriter;
 	private FileWriter expressionFileWriter;
 	private FileWriter logFileWriter;
 			
 
-	public FileParser(int startID, int endID){
+	public FileParser(int startID, int endID, Semaphore semp){
 		this.filePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX");
 		this.startID = startID;
 		this.endID = endID;
+		this.semp = semp;
 	}
 	
 	void init () {
-		String sampleDataFile = Config.getAttri("SAMPLE_FILE_SAVE_PATH_PREFIX") + this.getName();
-		String expressionFile = Config.getAttri("EXPRESSION_FILE_SAVE_PATH_PREFIX") + this.getName();
+		String sampleDataFile = Config.getAttri("SAMPLE_FILE_PATH") + 
+				"_" + new Integer(startID) + "_" + new Integer(endID);
+		String expressionFile = Config.getAttri("EXPRESSION_FILE_PATH") + 
+				"_" + new Integer(startID) + "_" + new Integer(endID);
 
 		try {
 			sampleDataFileWriter = new FileWriter(new File(sampleDataFile), true);
@@ -37,7 +42,8 @@ public class FileParser extends Thread {
 		
 		File logFile = null;
 		try {
-			logFile = new File(Config.getAttri("FILE_PARSER_LOG_SAVE_PATH_PREFIX") + this.getName());
+			logFile = new File(Config.getAttri("LOG_SAVE_PATH_PREFIX") + 
+					"parser_" + new Integer(startID) + "_" + new Integer(endID));
 			if (!logFile.exists()) {
 				logFile.createNewFile();
 			}
@@ -59,7 +65,14 @@ public class FileParser extends Thread {
 	}
 	
 	public void run() {
+		try {
+			semp.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		parseAllFiles();
+		semp.release();
 	}
 	
 	public void parseAllFiles(){
