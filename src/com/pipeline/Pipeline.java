@@ -2,10 +2,8 @@ package com.pipeline;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -24,16 +22,15 @@ public class Pipeline {
 	}
 	
 	public void execute(int startId, int endId) {
+		initDataDir();
 		int totalPageCount = Util.getTotalPageCountFromFile();
 		startId = (startId <= totalPageCount) ? totalPageCount + 1 : startId; 
-		initDataDir();
 		try {
-			callFileFetcher(startId, endId);
-			callFileParser(startId, endId);
+			//callFileFetcher(startId, endId);
+			//callFileParser(startId, endId);
 			//callBatchFormulaCalculater(0, 0);
 			//callShortestUniquePrefixFinder();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -96,9 +93,10 @@ public class Pipeline {
 				logSavePathPrefixDirFile.mkdirs();
 			}
 		}
+		
+		Util.setTotalPageCount(0);
 	}
 	
-	// TODO(shenchen):impl
 	public void callFileFetcher(int startId, int endId) throws Exception {
 		ExecutorService pool = Executors.newCachedThreadPool();
         int totalItemCount = endId - startId + 1;
@@ -125,7 +123,6 @@ public class Pipeline {
         pool.shutdown();
 	}
 	
-	// TODO(shenchen):impl
 	public void callFileParser(int startId, int endId) throws Exception {
 		ExecutorService pool = Executors.newCachedThreadPool();
         int totalItemCount = endId - startId + 1;
@@ -176,6 +173,7 @@ public class Pipeline {
         				"_" + new Integer(startId + batchSingleThreadAbility * i) + 
         				"_" + new Integer(endId));
         	}
+        	
         	//handle sample
 			BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
 			String oneLine = null;
@@ -186,6 +184,7 @@ public class Pipeline {
 			}
 			sampleFileBufferedReader.close();
 			sampleFile.delete();
+			
 			//handle expr
 			BufferedReader exprFileBufferedReader = new BufferedReader(new FileReader(exprFile));
 			while ((oneLine = exprFileBufferedReader.readLine()) != null) {
@@ -197,7 +196,7 @@ public class Pipeline {
         sampleMergedFileWriter.close();
         exprMergedFileWriter.close();
         
-        System.out.println(totalPagesCount);
+        // write totalPagesCount to "TOTAL_PAGES_COUNT_PATH"
         Util.setTotalPageCount(totalPagesCount);
 	}
 	

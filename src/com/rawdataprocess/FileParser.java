@@ -18,7 +18,6 @@ public class FileParser extends Thread {
 	private FileWriter sampleDataFileWriter;
 	private FileWriter expressionFileWriter;
 	private FileWriter logFileWriter;
-			
 
 	public FileParser(int startID, int endID, Semaphore semp){
 		this.filePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX");

@@ -9,7 +9,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.List;
 
 import com.config.Config;
 
@@ -131,13 +130,12 @@ public class Util {
         return true;
     }
 	
-	public static int getTotalPageCountFromFile () {
-		File totoalPageNumberFile = new File(getTotalPageCountFilePath()); 
+	public static int getTotalPageCountFromFile() {
+		File totoalPageNumberFile = new File(Config.getAttri("TOTAL_PAGES_COUNT_PATH")); 
 		BufferedReader tpnReader = null;
 		try {
 			tpnReader = new BufferedReader(new FileReader(totoalPageNumberFile));
 		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		int totalPageCount = 0;
@@ -145,10 +143,8 @@ public class Util {
 			totalPageCount = Integer.parseInt(tpnReader.readLine());
 			tpnReader.close();
 		} catch (NumberFormatException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		return totalPageCount;
@@ -156,17 +152,17 @@ public class Util {
 	
 	public static void setTotalPageCount(int number) {
 		try {
-			FileWriter fw = new FileWriter(new File(getTotalPageCountFilePath()));
-			fw.write(number+"");
+			File file = new File(Config.getAttri("TOTAL_PAGES_COUNT_PATH"));
+			if (file.exists()) {
+				file.delete();
+			}
+			file.createNewFile();
+			FileWriter fw = new FileWriter(file);
+			fw.write(number + "");
 			fw.flush();
 			fw.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
-	}
-	
-	public static String getTotalPageCountFilePath() {
-		return "total_page_number.txt";
 	}
 }

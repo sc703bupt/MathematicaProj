@@ -1,15 +1,11 @@
 package com.config;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
 
 public class Config {
 	private static Config config = new Config();
@@ -67,6 +63,7 @@ public class Config {
 
 		// only for pakcage:util
 		setAttri("INDEX_WIDTH", p.getProperty("INDEX_WIDTH"));
+		setAttri("TOTAL_PAGES_COUNT_PATH", p.getProperty("TOTAL_PAGES_COUNT_PATH"));
 	}
 
 	public static void setAttri(String attriName, String attriValue) {
