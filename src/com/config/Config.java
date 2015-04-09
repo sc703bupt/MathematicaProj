@@ -60,7 +60,6 @@ public class Config {
 		setAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH", p.getProperty("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));
 		setAttri("DIVIDE_SAVE_PATH_PREFIX", p.getProperty("DIVIDE_SAVE_PATH_PREFIX"));
 		setAttri("FILE_PATH_LENGTH_LIMIT", p.getProperty("FILE_PATH_LENGTH_LIMIT"));
-		setAttri("SUP_INIT_FILE_NAME", p.getProperty("SUP_INIT_FILE_NAME"));
 		setAttri("SINGLE_FILE_ITEM_MAX_COUNT", p.getProperty("SINGLE_FILE_ITEM_MAX_COUNT"));
 
 		// only for pakcage:util
