@@ -18,7 +18,7 @@ import com.util.Util;
 public class Pipeline {
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
-		p.execute(1,20);
+		p.execute(1,10);
 	}
 	
 	public void execute(int startId, int endId) {

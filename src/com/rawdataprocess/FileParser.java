@@ -209,6 +209,9 @@ public class FileParser extends Thread {
                
             	tempString = tempString.trim();
             }
+            if (expression.compareTo("") != 0) {
+            	Util.write(expressionFileWriter, fileFullName + ":" + expression + "\n");
+            }
            
 
             reader.close();
