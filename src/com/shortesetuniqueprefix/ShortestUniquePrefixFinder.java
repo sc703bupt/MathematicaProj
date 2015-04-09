@@ -55,8 +55,10 @@ public class ShortestUniquePrefixFinder {
 		fileRoot.mkdir();
 		
 		// copy source file to workspace and rename
+		// ATTENTION: a little tricky here, use SINGLE_FILE_ITEM_MAX_COUNT + 1 as the 
+		// initial file name for ensuring the at least one time dividing in file
 		String initFilePath = Config.getAttri("DIVIDE_SAVE_PATH_PREFIX") + 
-				"FileRoot\\c" + Integer.valueOf(Config.getAttri("SUP_INIT_FILE_NAME"));
+				"FileRoot\\c" + (Integer.valueOf(Config.getAttri("SINGLE_FILE_ITEM_MAX_COUNT")) + 1);
 		Util.copyFile(Config.getAttri("SOURCE_FOR_DIVIDE_PATH"), initFilePath);
 		
 		// clean result map

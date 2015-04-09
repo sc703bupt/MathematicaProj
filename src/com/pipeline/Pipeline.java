@@ -18,7 +18,7 @@ import com.util.Util;
 public class Pipeline {
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
-		p.execute(1,10);
+		p.execute(1,30);
 	}
 	
 	public void execute(int startId, int endId) {
@@ -119,8 +119,6 @@ public class Pipeline {
 			pool.execute(ff);
 		}
 		
-		Thread.sleep(1000);
-		
 		// no continue until all batch tasks are done
 		do {
 			Thread.sleep(1000);
@@ -146,8 +144,6 @@ public class Pipeline {
 			}
 			pool.execute(fp);
 		}
-		
-		Thread.sleep(1000);
 		
 		// no continue until all batch tasks are done
 		do {
@@ -226,12 +222,10 @@ public class Pipeline {
 			pool.execute(bfc);
 		}
 		
-		Thread.sleep(1000);
-		
 		// no continue until all batch tasks are done
-		while (semp.availablePermits() != numberOfThread) {
+		do {
 			Thread.sleep(1000);
-		}
+		} while (semp.availablePermits() != numberOfThread);
         pool.shutdown();
         
         // merge files into "TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"
