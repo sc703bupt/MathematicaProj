@@ -18,7 +18,7 @@ import com.util.Util;
 public class Pipeline {
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
-		p.execute(1,10);
+		p.execute(1,20);
 	}
 	
 	public void execute(int startId, int endId) {
@@ -94,7 +94,10 @@ public class Pipeline {
 			}
 		}
 		
-		Util.setTotalPageCount(0);
+		File file = new File(Config.getAttri("TOTAL_PAGES_COUNT_PATH"));
+		if (!file.exists()) {
+			Util.setTotalPageCount(0);
+		}
 	}
 	
 	public void callFileFetcher(int startId, int endId) throws Exception {
