@@ -40,6 +40,7 @@ public class Config {
 		setAttri("EXPRESSION_FILE_PATH", p.getProperty("EXPRESSION_FILE_PATH"));
 		setAttri("PROGRESSION_LENGTH", p.getProperty("PROGRESSION_LENGTH"));
 		setAttri("SERIESE_FILE_PATH", p.getProperty("SERIESE_FILE_PATH"));
+		setAttri("SINGLE_THREAD_FETCH_PARSE_ABILITY", p.getProperty("SINGLE_THREAD_FETCH_PARSE_ABILITY"));
 		
 		// only for package:formulacalculate
 		setAttri("TOTAL_PAGES_COUNT", p.getProperty("TOTAL_PAGES_COUNT"));

@@ -103,7 +103,7 @@ public class Pipeline {
 	public void callFileFetcher(int startId, int endId) throws Exception {
 		ExecutorService pool = Executors.newCachedThreadPool();
         int totalItemCount = endId - startId + 1;
-		int batchSingleThreadAbility = Integer.parseInt(Config.getAttri("BATCH_SINGLE_THREAD_ABILITY"));
+		int batchSingleThreadAbility = Integer.parseInt(Config.getAttri("SINGLE_THREAD_FETCH_PARSE_ABILITY"));
         int numberOfThread = totalItemCount / batchSingleThreadAbility;
         if (totalItemCount % batchSingleThreadAbility != 0) {
         	numberOfThread += 1;
@@ -122,16 +122,16 @@ public class Pipeline {
 		Thread.sleep(1000);
 		
 		// no continue until all batch tasks are done
-		while (semp.availablePermits() != numberOfThread) {
+		do {
 			Thread.sleep(1000);
-		}
+		} while (semp.availablePermits() != numberOfThread);
         pool.shutdown();
 	}
 	
 	public void callFileParser(int startId, int endId) throws Exception {
 		ExecutorService pool = Executors.newCachedThreadPool();
         int totalItemCount = endId - startId + 1;
-        int batchSingleThreadAbility = Integer.parseInt(Config.getAttri("BATCH_SINGLE_THREAD_ABILITY"));
+        int batchSingleThreadAbility = Integer.parseInt(Config.getAttri("SINGLE_THREAD_FETCH_PARSE_ABILITY"));
         int numberOfThread = totalItemCount / batchSingleThreadAbility;
         if (totalItemCount % batchSingleThreadAbility != 0) {
         	numberOfThread += 1;
@@ -150,9 +150,9 @@ public class Pipeline {
 		Thread.sleep(1000);
 		
 		// no continue until all batch tasks are done
-		while (semp.availablePermits() != numberOfThread) {
+		do {
 			Thread.sleep(1000);
-		}
+		} while (semp.availablePermits() != numberOfThread);
         pool.shutdown();
 
         File sampleMergedFile = new File(Config.getAttri("SAMPLE_FILE_PATH"));
