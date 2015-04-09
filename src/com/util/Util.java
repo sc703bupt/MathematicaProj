@@ -131,10 +131,10 @@ public class Util {
     }
 	
 	public static int getTotalPageCountFromFile() {
-		File totoalPageNumberFile = new File(Config.getAttri("TOTAL_PAGES_COUNT_PATH")); 
+		File totalPageNumberFile = new File(Config.getAttri("TOTAL_PAGES_COUNT_PATH")); 
 		BufferedReader tpnReader = null;
 		try {
-			tpnReader = new BufferedReader(new FileReader(totoalPageNumberFile));
+			tpnReader = new BufferedReader(new FileReader(totalPageNumberFile));
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		}

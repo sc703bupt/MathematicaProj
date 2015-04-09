@@ -28,7 +28,7 @@ public class BatchFormulaCalculater extends Thread{
 		try {
 			semp.acquire();
 			batchCalculate();
-			System.out.println("Task for " + startID + " to " + endID +" is done.");
+			System.out.println("Batch calculate task for [" + startID + ", " + endID +"] is done.");
 			semp.release();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -36,7 +36,7 @@ public class BatchFormulaCalculater extends Thread{
 	}
 	
 	public void batchCalculate() throws Exception {
-		long startTime = System.currentTimeMillis();
+		long startTime = System.currentTimeMillis(); // get start time
 
 		File sampleFile = new File(Config.getAttri("SAMPLE_FILE_PATH"));
 		File exprFile = new File(Config.getAttri("EXPRESSION_FILE_PATH"));
@@ -129,13 +129,29 @@ public class BatchFormulaCalculater extends Thread{
 				}	
 				sampleItem = sampleFileBufferedReader.readLine();
 			}
-			sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
-			exprItemID = Util.getIDFromIndex(Util.getIndexFromItem(exprItem));
+			
+			if (sampleItem != null) {
+				sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
+			}
+			
+			if(exprItem != null) {
+				exprItemID = Util.getIDFromIndex(Util.getIndexFromItem(exprItem));
+			}
 		}
 		
-		// TODO(shenchen): impl: handle superfluous sample item
+		// handle superfluous sample item, write them directly to file
+		while(sampleItem != null && sampleItemID <= endID) {
+			if (lastWrittenSampleID != sampleItemID) {
+				formulaCalculatedFileWriter.write(sampleItem + "\n");
+				lastWrittenSampleID = sampleItemID;
+			}
+			sampleItem = sampleFileBufferedReader.readLine();
+			if (sampleItem != null) {
+				sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
+			}
+		}
 		
-		long endTime = System.currentTimeMillis(); //获取结束时间
+		long endTime = System.currentTimeMillis(); // get end time
 		
 		statLogFileWriter.write("Total all formula failed item count:" + failedCalculateItemCount + "\n");
 		statLogFileWriter.write("Total lack of formula item count:" + lackOfFormulaCount + "\n");

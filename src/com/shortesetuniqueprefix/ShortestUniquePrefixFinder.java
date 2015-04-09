@@ -73,6 +73,7 @@ public class ShortestUniquePrefixFinder {
 		File sourceFile = new File(absSourceForDividePath);
 		String itemCountStr = sourceFile.getName().substring(1); // get rid of 'c'
 		Integer itemCount = new Integer(itemCountStr);
+		
 		/* base case: 
 		   if the path is too long or the number of items is less enough, 
 		   stop dividing and calculate USP in memory

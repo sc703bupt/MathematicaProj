@@ -26,10 +26,10 @@ public class Pipeline {
 		int totalPageCount = Util.getTotalPageCountFromFile();
 		startId = (startId <= totalPageCount) ? totalPageCount + 1 : startId; 
 		try {
-			//callFileFetcher(startId, endId);
-			//callFileParser(startId, endId);
-			//callBatchFormulaCalculater(0, 0);
-			//callShortestUniquePrefixFinder();
+			callFileFetcher(startId, endId);
+			callFileParser(startId, endId);
+			callBatchFormulaCalculater(startId, endId);
+			callShortestUniquePrefixFinder();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -116,6 +116,8 @@ public class Pipeline {
 			pool.execute(ff);
 		}
 		
+		Thread.sleep(1000);
+		
 		// no continue until all batch tasks are done
 		while (semp.availablePermits() != numberOfThread) {
 			Thread.sleep(1000);
@@ -141,6 +143,8 @@ public class Pipeline {
 			}
 			pool.execute(fp);
 		}
+		
+		Thread.sleep(1000);
 		
 		// no continue until all batch tasks are done
 		while (semp.availablePermits() != numberOfThread) {
@@ -219,14 +223,16 @@ public class Pipeline {
 			pool.execute(bfc);
 		}
 		
+		Thread.sleep(1000);
+		
 		// no continue until all batch tasks are done
 		while (semp.availablePermits() != numberOfThread) {
 			Thread.sleep(1000);
 		}
         pool.shutdown();
         
-        // merge files into "SOURCE_FOR_DIVIDE_PATH"
-        File mergedFile = new File(Config.getAttri("SOURCE_FOR_DIVIDE_PATH"));
+        // merge files into "TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"
+        File mergedFile = new File(Config.getAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));
         FileWriter mergedFileWriter = null;
         if (mergedFile.exists()) {
         	mergedFile.delete();
@@ -248,12 +254,30 @@ public class Pipeline {
 			BufferedReader formulaCalculatedFileBufferedReader = new BufferedReader(new FileReader(formulaCalculatedFile));
 			String oneLine = null;
 			while ((oneLine = formulaCalculatedFileBufferedReader.readLine()) != null) {
-				mergedFileWriter.write(oneLine);
+				mergedFileWriter.write(oneLine + "\n");
 			}
 			formulaCalculatedFileBufferedReader.close();
 			formulaCalculatedFile.delete();			
         }
 		mergedFileWriter.close();
+		
+		// append "TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH" to "SOURCE_FOR_DIVIDE_PATH" if possible
+		File sourceForDivideFile = new File(Config.getAttri("SOURCE_FOR_DIVIDE_PATH"));
+        FileWriter sourceForDivideFileWriter = null;
+        if (!sourceForDivideFile.exists()) {
+        	sourceForDivideFile.createNewFile();
+        }
+        sourceForDivideFileWriter = new FileWriter(sourceForDivideFile, true); // append mode
+        
+        File toBeAppendedSourceForDivideFile = new File(Config.getAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));
+		BufferedReader toBeAppendedSourceForDivideFileBufferedReader = new BufferedReader(new FileReader(toBeAppendedSourceForDivideFile));
+		String oneLine = null;
+		while ((oneLine = toBeAppendedSourceForDivideFileBufferedReader.readLine()) != null) {
+			sourceForDivideFileWriter.write(oneLine + "\n");
+		}
+		sourceForDivideFileWriter.close();
+		toBeAppendedSourceForDivideFileBufferedReader.close();
+		toBeAppendedSourceForDivideFile.delete();
 	}
 	
 	public void callShortestUniquePrefixFinder() throws Exception {

@@ -56,6 +56,7 @@ public class Config {
 
 		// only for package:shorestuniqueprefix
 		setAttri("SOURCE_FOR_DIVIDE_PATH", p.getProperty("SOURCE_FOR_DIVIDE_PATH"));
+		setAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH", p.getProperty("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));
 		setAttri("DIVIDE_SAVE_PATH_PREFIX", p.getProperty("DIVIDE_SAVE_PATH_PREFIX"));
 		setAttri("FILE_PATH_LENGTH_LIMIT", p.getProperty("FILE_PATH_LENGTH_LIMIT"));
 		setAttri("SUP_INIT_FILE_NAME", p.getProperty("SUP_INIT_FILE_NAME"));
