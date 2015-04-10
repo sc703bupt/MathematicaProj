@@ -4,6 +4,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -16,6 +21,8 @@ import com.shortesetuniqueprefix.ShortestUniquePrefixFinder;
 import com.util.Util;
 
 public class Pipeline {
+	public static Set<Integer> checkSet = Collections.synchronizedSet((new HashSet<Integer>())); 
+	
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
 		p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
@@ -23,6 +30,7 @@ public class Pipeline {
 	
 	public void execute(int startId, int endId) {
 		initDataDir();
+		checkSet.clear();
 		int totalPageCount = Util.getTotalPageCountFromFile();
 		startId = (startId <= totalPageCount) ? totalPageCount + 1 : startId; 
 		try {
@@ -203,30 +211,94 @@ public class Pipeline {
         Util.setTotalPageCount(totalPagesCount);
 	}
 	
-	public void callBatchFormulaCalculater(int startId, int endId) throws Exception {
-        ExecutorService pool = Executors.newCachedThreadPool();
+	public void callBatchFormulaCalculater(int startId, int endId) throws Exception {       
         int totalItemCount = endId - startId + 1;
         int batchSingleThreadAbility = Integer.parseInt(Config.getAttri("BATCH_SINGLE_THREAD_ABILITY"));
         int numberOfThread = totalItemCount / batchSingleThreadAbility;
         if (totalItemCount % batchSingleThreadAbility != 0) {
         	numberOfThread += 1;
         }
-        final Semaphore semp = new Semaphore(numberOfThread);
+        
+        ExecutorService fisrtRoundPool = Executors.newCachedThreadPool();
+        final Semaphore firstRoundSemaphore = new Semaphore(numberOfThread);
 		for (int i = 0; i <= numberOfThread - 1; i++) {
 			BatchFormulaCalculater bfc = null;
 			if (i != numberOfThread - 1) {
-				bfc = new BatchFormulaCalculater(startId + batchSingleThreadAbility * i, startId + batchSingleThreadAbility * (i + 1) - 1, null, semp);
+				bfc = new BatchFormulaCalculater(startId + batchSingleThreadAbility * i, startId + batchSingleThreadAbility * (i + 1) - 1, null, firstRoundSemaphore);
 			} else {
-				bfc = new BatchFormulaCalculater(startId + batchSingleThreadAbility * i, endId, null, semp);
+				bfc = new BatchFormulaCalculater(startId + batchSingleThreadAbility * i, endId, null, firstRoundSemaphore);
 			}
-			pool.execute(bfc);
+			fisrtRoundPool.execute(bfc);
 		}
 		
 		// no continue until all batch tasks are done
 		do {
 			Thread.sleep(1000);
-		} while (semp.availablePermits() != numberOfThread);
-        pool.shutdown();
+		} while (firstRoundSemaphore.availablePermits() != numberOfThread);
+		fisrtRoundPool.shutdown();
+        
+        // check and redo
+		// console log
+		System.out.println("Pipeline: start check and redo.");
+        ExecutorService checkRoundPool = Executors.newCachedThreadPool();
+        final Semaphore checkRoundSemaphore = new Semaphore(numberOfThread);
+        int round = 1;
+        while (true) {
+        	// console log
+        	System.out.println("Pipeline: round " + round);
+        	Map<String, String> fragmentToOriginalFileMap = new HashMap<String, String>();
+        	boolean isTaskDone = true;
+    		for (int i = 0; i <= numberOfThread - 1; i++) {
+    			int lowerBound, upperBound;
+    			if (i != numberOfThread - 1) {
+    				lowerBound = startId + batchSingleThreadAbility * i;
+    				upperBound = startId + batchSingleThreadAbility * (i + 1) - 1;
+    			} else {
+    				lowerBound = startId + batchSingleThreadAbility * i;
+    				upperBound = endId;
+    			}
+    			for (int j = lowerBound; j <= upperBound; j++) {
+    				if (!checkSet.contains(j)) {
+    					isTaskDone = false;
+    	    			// console log
+    	    			System.out.println("Pipeline: start redo[" + j + ", " + upperBound +"]");
+    					BatchFormulaCalculater bfc = new BatchFormulaCalculater(j, upperBound, null, checkRoundSemaphore);
+    					checkRoundPool.execute(bfc);
+    					String fragmentFileName = Config.getAttri("FORMULA_CALCULATED_SAVE_PATH_PREFIX") + 
+    							"_" + new Integer(j) + "_" + new Integer(upperBound);
+    					String originalFileName = Config.getAttri("FORMULA_CALCULATED_SAVE_PATH_PREFIX") + 
+    							"_" + new Integer(lowerBound) + "_" + new Integer(upperBound);
+    					fragmentToOriginalFileMap.put(fragmentFileName, originalFileName);
+    					break;
+    				}
+    			}
+    		}
+    		
+    		// no thread started for redo
+    		if (isTaskDone) {
+    			// console log
+    			checkRoundPool.shutdown();
+    			System.out.println("Pipeline: check pass.");
+    			break;
+    		}
+    		
+    		// no continue until all batch tasks are done
+    		do {
+    			Thread.sleep(1000);
+    		} while (checkRoundSemaphore.availablePermits() != numberOfThread);
+    		
+    		// merge fragment generated by redo into original file
+    		// console log
+			System.out.println("Pipeline: start round " + round + " merging.");
+    		for (Map.Entry<String, String> entry : fragmentToOriginalFileMap.entrySet()) {
+    			File fragmentFile = new File(entry.getKey());
+    			File originalFile = new File(entry.getValue());
+    			Util.appendFile(originalFile, fragmentFile);
+    		}
+    		// console log
+			System.out.println("Pipeline: round " + round + " merging done.");
+    		round++;
+        }
         
         // merge files into "TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"
         File mergedFile = new File(Config.getAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));
@@ -260,21 +332,11 @@ public class Pipeline {
 		
 		// append "TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH" to "SOURCE_FOR_DIVIDE_PATH" if possible
 		File sourceForDivideFile = new File(Config.getAttri("SOURCE_FOR_DIVIDE_PATH"));
-        FileWriter sourceForDivideFileWriter = null;
         if (!sourceForDivideFile.exists()) {
         	sourceForDivideFile.createNewFile();
         }
-        sourceForDivideFileWriter = new FileWriter(sourceForDivideFile, true); // append mode
-        
         File toBeAppendedSourceForDivideFile = new File(Config.getAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));
-		BufferedReader toBeAppendedSourceForDivideFileBufferedReader = new BufferedReader(new FileReader(toBeAppendedSourceForDivideFile));
-		String oneLine = null;
-		while ((oneLine = toBeAppendedSourceForDivideFileBufferedReader.readLine()) != null) {
-			sourceForDivideFileWriter.write(oneLine + "\n");
-		}
-		sourceForDivideFileWriter.close();
-		toBeAppendedSourceForDivideFileBufferedReader.close();
-		toBeAppendedSourceForDivideFile.delete();
+		Util.appendFile(sourceForDivideFile, toBeAppendedSourceForDivideFile);
 		
 		// console log
 		System.out.println("Pipeline: merge done.");

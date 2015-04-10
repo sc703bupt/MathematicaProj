@@ -133,6 +133,19 @@ public class Util {
         return true;
     }
 	
+	// delete srcFile by default
+	public static void appendFile(File destFile, File srcFile) throws IOException {
+		FileWriter destFileWriter = new FileWriter(destFile, true); // append mode
+		BufferedReader srcFileBufferedReader = new BufferedReader(new FileReader(srcFile));
+		String oneLine = null;
+		while ((oneLine = srcFileBufferedReader.readLine()) != null) {
+			destFileWriter.write(oneLine + "\n");
+		}
+		destFileWriter.close();
+		srcFileBufferedReader.close();
+		srcFile.delete();
+	}
+	
 	public static int getTotalPageCountFromFile() {
 		File totalPageNumberFile = new File(Config.getAttri("TOTAL_PAGES_COUNT_PATH")); 
 		BufferedReader tpnReader = null;

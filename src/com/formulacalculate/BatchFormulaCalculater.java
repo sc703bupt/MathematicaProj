@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import com.config.Config;
+import com.pipeline.Pipeline;
 import com.util.Util;
 
 public class BatchFormulaCalculater extends Thread{
@@ -30,9 +31,10 @@ public class BatchFormulaCalculater extends Thread{
 			batchCalculate();
 			// console log
 			System.out.println("BatchFormulaCalculator[" + startID + ", " + endID +"]: task done.");
-			semp.release();
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			semp.release();
 		}
 	}
 	
@@ -91,7 +93,7 @@ public class BatchFormulaCalculater extends Thread{
 			// console log
 			if ((sampleItemID - startID) % ((endID - startID + 1)/10) == 0) {
 				String percetage = (sampleItemID - startID) / ((endID - startID + 1)/10) + "0%";
-				System.out.println("BatchFormulaCalculator[" + startID + ", " + endID +"]:" + percetage + "done.");
+				System.out.println("BatchFormulaCalculator[" + startID + ", " + endID +"]: " + percetage + " done.");
 			}
 			
 			// skip if the id in skipIDList
@@ -123,8 +125,10 @@ public class BatchFormulaCalculater extends Thread{
 					calculatedResult = Util.getContentFromItem(sampleItem);
 					failedCalculateItemCount++;
 				}
-				String cuttedSample = Util.progressionCutter(Util.getIndexFromItem(sampleItem) + ":" + calculatedResult);
-				formulaCalculatedFileWriter.write(cuttedSample + "\n");
+				String cuttedResult = Util.progressionCutter(Util.getIndexFromItem(sampleItem) + ":" + calculatedResult);
+				formulaCalculatedFileWriter.write(cuttedResult + "\n");
+				formulaCalculatedFileWriter.flush();
+				Pipeline.checkSet.add(sampleItemID);
 				lastWrittenSampleID = sampleItemID;
 			} else if (sampleItemID > exprItemID) {
 				exprItem = exprFileBufferedReader.readLine();
@@ -134,6 +138,8 @@ public class BatchFormulaCalculater extends Thread{
 					statLogFileWriter.write("[LACK]:" + Util.getIndexFromItem(sampleItem) + "\n");
 					String cuttedSample = Util.progressionCutter(sampleItem);
 					formulaCalculatedFileWriter.write(cuttedSample + "\n");// find no expr, use sample itself	
+					formulaCalculatedFileWriter.flush();
+					Pipeline.checkSet.add(sampleItemID);
 					lastWrittenSampleID = sampleItemID;
 				}	
 				sampleItem = sampleFileBufferedReader.readLine();
@@ -153,6 +159,8 @@ public class BatchFormulaCalculater extends Thread{
 			if (lastWrittenSampleID != sampleItemID) {
 				String cuttedSample = Util.progressionCutter(sampleItem);
 				formulaCalculatedFileWriter.write(cuttedSample + "\n");
+				formulaCalculatedFileWriter.flush();
+				Pipeline.checkSet.add(sampleItemID);
 				lastWrittenSampleID = sampleItemID;
 			}
 			sampleItem = sampleFileBufferedReader.readLine();
