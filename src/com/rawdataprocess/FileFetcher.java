@@ -47,6 +47,8 @@ public class FileFetcher extends Thread{
 
         try {
             URLConnection conn = url.openConnection();
+            conn.setConnectTimeout(30000);
+            conn..setReadTimeout(30000);
             InputStream inStream = conn.getInputStream();
             FileOutputStream fs = new FileOutputStream(saveFile);
 
