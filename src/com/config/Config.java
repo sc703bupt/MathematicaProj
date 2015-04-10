@@ -65,6 +65,9 @@ public class Config {
 		// only for pakcage:util
 		setAttri("INDEX_WIDTH", p.getProperty("INDEX_WIDTH"));
 		setAttri("TOTAL_PAGES_COUNT_PATH", p.getProperty("TOTAL_PAGES_COUNT_PATH"));
+		
+		// only for package:pipeline
+		setAttri("TARGET_END_ID", p.getProperty("TARGET_END_ID"));
 	}
 
 	public static void setAttri(String attriName, String attriValue) {

@@ -116,7 +116,8 @@ public class BatchFormulaCalculater extends Thread{
 					calculatedResult = Util.getContentFromItem(sampleItem);
 					failedCalculateItemCount++;
 				}
-				formulaCalculatedFileWriter.write(Util.getIndexFromItem(sampleItem) + ":" + calculatedResult + "\n");
+				String cuttedSample = Util.progressionCutter(Util.getIndexFromItem(sampleItem) + ":" + calculatedResult);
+				formulaCalculatedFileWriter.write(cuttedSample + "\n");
 				lastWrittenSampleID = sampleItemID;
 			} else if (sampleItemID > exprItemID) {
 				exprItem = exprFileBufferedReader.readLine();
@@ -124,7 +125,8 @@ public class BatchFormulaCalculater extends Thread{
 				if (lastWrittenSampleID != sampleItemID) {
 					lackOfFormulaCount++;
 					statLogFileWriter.write("[LACK]:" + Util.getIndexFromItem(sampleItem) + "\n");
-					formulaCalculatedFileWriter.write(sampleItem + "\n");// find no expr, use sample itself	
+					String cuttedSample = Util.progressionCutter(sampleItem);
+					formulaCalculatedFileWriter.write(cuttedSample + "\n");// find no expr, use sample itself	
 					lastWrittenSampleID = sampleItemID;
 				}	
 				sampleItem = sampleFileBufferedReader.readLine();
@@ -142,7 +144,8 @@ public class BatchFormulaCalculater extends Thread{
 		// handle superfluous sample item, write them directly to file
 		while(sampleItem != null && sampleItemID <= endID) {
 			if (lastWrittenSampleID != sampleItemID) {
-				formulaCalculatedFileWriter.write(sampleItem + "\n");
+				String cuttedSample = Util.progressionCutter(sampleItem);
+				formulaCalculatedFileWriter.write(cuttedSample + "\n");
 				lastWrittenSampleID = sampleItemID;
 			}
 			sampleItem = sampleFileBufferedReader.readLine();

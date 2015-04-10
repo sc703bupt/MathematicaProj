@@ -18,7 +18,7 @@ import com.util.Util;
 public class Pipeline {
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
-		p.execute(1,30);
+		p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
 	}
 	
 	public void execute(int startId, int endId) {

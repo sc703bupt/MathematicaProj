@@ -8,7 +8,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.config.Config;
 
@@ -164,5 +167,26 @@ public class Util {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
+	}
+	
+	// cut progression by the upper bound PROGRESSION_MAX_VALUE
+	public static String progressionCutter(String progression) {
+		String content = Util.getContentFromItem(progression);
+		String index = Util.getIndexFromItem(progression);
+		String[] progressionNumbers = content.trim().split(", ");
+		List<BigInteger> progressionNumberList = new ArrayList<BigInteger>();
+		int progressionMaxValue = Integer.parseInt(Config.getAttri("PROGRESSION_MAX_VALUE"));
+		for (String numberStr : progressionNumbers) {
+			if (!Util.isNumber(numberStr.trim())) {
+				continue;
+			}
+			BigInteger number = new BigInteger(numberStr);
+			if (number.compareTo(BigInteger.valueOf(progressionMaxValue)) == 1) {
+				break;
+			}
+			progressionNumberList.add(number);
+		}
+		String cuttedProgressionStr = progressionNumberList.toString();
+		return index + ":" + cuttedProgressionStr.substring(1, cuttedProgressionStr.length()-1);
 	}
 }

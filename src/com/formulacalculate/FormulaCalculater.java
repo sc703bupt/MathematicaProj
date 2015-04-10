@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -96,6 +95,7 @@ public class FormulaCalculater {
 				currentIndexLogFileWriter.write("success to calculate: " + singleExpr + "\n");
 				currentIndexLogFileWriter.close();
 			}
+
 			return singleRet;
 		}
 		if (isDetailCalculationLog) {
@@ -174,30 +174,5 @@ public class FormulaCalculater {
 	// remember call this method when never use KernelLink
 	void close() {
 		kernelLink.close();
-	}
-	
-	public static void main(String[] args) {
-		FormulaCalculater fc = null;
-		try {
-			fc = new FormulaCalculater();
-			while(true){
-				System.out.println("Please enter expr:");
-				Scanner s = new Scanner(System.in);
-				String expr = s.nextLine();
-				System.out.println("Please enter sample:");
-				String sample = s.nextLine();
-				List<String> exprList = new ArrayList<String>();
-				exprList.add(expr);
-				String A = fc.calculateToString(exprList, sample, "testIndex", null);
-				System.out.println("Response: " + A);
-				System.out.println("------------------------");
-			}
-		} catch (MathLinkException e) {
-			System.out.println("MathLinkException occurred: " + e.getMessage());
-		} catch (Exception e) {
-			System.out.println(e.toString());
-		} finally {
-			fc.close();
-		}
 	}
 }
