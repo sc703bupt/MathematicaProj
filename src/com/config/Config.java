@@ -54,7 +54,8 @@ public class Config {
 		setAttri("FORMULA_STATICATICS_LOG_PREFIX", p.getProperty("FORMULA_STATICATICS_LOG_PREFIX"));
 		setAttri("IS_DETAIL_CALCULATION_LOG", p.getProperty("IS_DETAIL_CALCULATION_LOG"));
 		setAttri("BATCH_SINGLE_THREAD_ABILITY", p.getProperty("BATCH_SINGLE_THREAD_ABILITY"));
-
+		setAttri("INTERVAL_FOR_RESTART_MATHKERNEL", p.getProperty("INTERVAL_FOR_RESTART_MATHKERNEL"));
+		
 		// only for package:shorestuniqueprefix
 		setAttri("SOURCE_FOR_DIVIDE_PATH", p.getProperty("SOURCE_FOR_DIVIDE_PATH"));
 		setAttri("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH", p.getProperty("TO_BE_APPENDED_SOURCE_FOR_DIVIDE_PATH"));

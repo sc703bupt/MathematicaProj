@@ -29,7 +29,7 @@ public class Pipeline {
 			callFileFetcher(startId, endId);
 			callFileParser(startId, endId);
 			callBatchFormulaCalculater(startId, endId);
-			callShortestUniquePrefixFinder();
+			//callShortestUniquePrefixFinder();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -275,6 +275,9 @@ public class Pipeline {
 		sourceForDivideFileWriter.close();
 		toBeAppendedSourceForDivideFileBufferedReader.close();
 		toBeAppendedSourceForDivideFile.delete();
+		
+		// console log
+		System.out.println("Pipeline: merge done.");
 	}
 	
 	public void callShortestUniquePrefixFinder() throws Exception {

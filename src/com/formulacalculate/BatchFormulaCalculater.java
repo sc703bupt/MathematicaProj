@@ -28,7 +28,8 @@ public class BatchFormulaCalculater extends Thread{
 		try {
 			semp.acquire();
 			batchCalculate();
-			System.out.println("Batch calculate task for [" + startID + ", " + endID +"] is done.");
+			// console log
+			System.out.println("BatchFormulaCalculator[" + startID + ", " + endID +"]: task done.");
 			semp.release();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -87,6 +88,12 @@ public class BatchFormulaCalculater extends Thread{
 		int sampleItemID = Util.getIDFromIndex(Util.getIndexFromItem(sampleItem));
 		int exprItemID = Util.getIDFromIndex(Util.getIndexFromItem(exprItem));
 		while(sampleItem != null && exprItem != null && sampleItemID <= endID && exprItemID <= endID) {
+			// console log
+			if ((sampleItemID - startID) % ((endID - startID + 1)/10) == 0) {
+				String percetage = (sampleItemID - startID) / ((endID - startID + 1)/10) + "0%";
+				System.out.println("BatchFormulaCalculator[" + startID + ", " + endID +"]:" + percetage + "done.");
+			}
+			
 			// skip if the id in skipIDList
 			if (skipIDList != null && skipIDList.contains(new Integer(sampleItemID))) {
 				if (lastWrittenSampleID != sampleItemID) {

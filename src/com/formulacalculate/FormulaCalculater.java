@@ -13,6 +13,7 @@ import com.wolfram.jlink.*;
 
 public class FormulaCalculater {
 	private KernelLink kernelLink;
+	private int exprCount = 0;
 	
 	public FormulaCalculater() {
 		System.setProperty("com.wolfram.jlink.libdir", Config.getAttri("JLINK_DIR"));
@@ -40,11 +41,6 @@ public class FormulaCalculater {
 			currentIndexLogFileWriter = new FileWriter(currentIndexlogFile);
 		}
 		
-		if (kernelLink == null) {
-			kernelLink = MathLinkFactory.createKernelLink(Config.getAttri("KENERL_ARGV"));
-			kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
-		}
-		
 		if (singleExprList == null || singleExprList.isEmpty()) {
 			if (isDetailCalculationLog) {
 				currentIndexLogFileWriter.write("singelExprList is null or empty.\n");
@@ -69,8 +65,20 @@ public class FormulaCalculater {
 			sampleNumberList.add(new BigInteger(sampleNumber.trim()));
 		}
 		
+		int interval = Integer.valueOf(Config.getAttri("INTERVAL_FOR_RESTART_MATHKERNEL"));
 		for (String singleExpr : singleExprList) {
+			if (exprCount == interval) {// force to kill when calculate some expressions
+				kernelLink.terminateKernel();
+				kernelLink.close();
+				kernelLink = null;
+			}
+			if (kernelLink == null) {
+				kernelLink = MathLinkFactory.createKernelLink(Config.getAttri("KENERL_ARGV"));
+				kernelLink.discardAnswer();// Get rid of the initial InputNamePacket
+				exprCount = 0;
+			}
 			List<BigInteger> singleRet = getFromSingleExpr(singleExpr, index, statLogFileWriter);
+			exprCount++;
 			if (singleRet == null) {
 				if (isDetailCalculationLog) {
 					currentIndexLogFileWriter.write("failed to calculate: " + singleExpr + "\n");	
