@@ -21,25 +21,26 @@ import com.shortesetuniqueprefix.ShortestUniquePrefixFinder;
 import com.util.Util;
 
 public class Pipeline {
+	public static int totalPageCount = 0;
 	public static Set<Integer> checkSet = Collections.synchronizedSet((new HashSet<Integer>())); 
 	
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
 		//p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
-		int totalPageCount = Util.getTotalPageCountFromFile();
+		totalPageCount = Util.getTotalPageCountFromFile();
 		int targetEndId = Integer.valueOf(Config.getAttri("TARGET_END_ID"));
 		int i = 1;
 		for (i = 1; totalPageCount + i * 1000 <= targetEndId; i++) {
-			p.execute(1,  totalPageCount + i * 1000);
+			p.execute(100000,  totalPageCount + i * 1000);
 		}
 		if (totalPageCount + (i-1) * 1000 < targetEndId) {
-			p.execute(1,  targetEndId);
+			p.execute(100000,  targetEndId);
 		}
 	}
 	
 	public void execute(int startId, int endId) {
 		initDataDir();
-		int totalPageCount = Util.getTotalPageCountFromFile();
+		totalPageCount = Util.getTotalPageCountFromFile();
 		startId = (startId <= totalPageCount) ? totalPageCount + 1 : startId;
 		try {
 			checkSet.clear();
@@ -174,7 +175,7 @@ public class Pipeline {
         File exprMergedFile = new File(Config.getAttri("EXPRESSION_FILE_PATH"));
         FileWriter exprMergedFileWriter = new FileWriter(exprMergedFile, true);
         
-        int totalPagesCount = Util.getTotalPageCountFromFile();
+        totalPageCount = Util.getTotalPageCountFromFile();
         for (int i = 0; i <= numberOfThread - 1; i++) {
         	File sampleFile = null;
         	File exprFile = null;
@@ -199,7 +200,7 @@ public class Pipeline {
 			String oneLine = null;
 			while ((oneLine = sampleFileBufferedReader.readLine()) != null) {
 				int index = Integer.parseInt(Util.getIndexFromItem(oneLine).substring(1));
-				totalPagesCount = totalPagesCount > index ? totalPagesCount : index;
+				totalPageCount = (totalPageCount > index ? totalPageCount : index);
 				sampleMergedFileWriter.write(oneLine + "\n");
 			}
 			sampleFileBufferedReader.close();
@@ -214,10 +215,9 @@ public class Pipeline {
 			exprFile.delete();
         }
         sampleMergedFileWriter.close();
-        exprMergedFileWriter.close();
-        
+        exprMergedFileWriter.close();    
         // write totalPagesCount to "TOTAL_PAGES_COUNT_PATH"
-        Util.setTotalPageCount(totalPagesCount);
+        //Util.setTotalPageCount(totalPagesCount);
 	}
 	
 	public void callBatchFormulaCalculater(int startId, int endId) throws Exception {       
@@ -349,6 +349,7 @@ public class Pipeline {
 		
 		// console log
 		System.out.println("Pipeline: merge done.");
+		Util.setTotalPageCount(totalPageCount);
 	}
 	
 	public void callShortestUniquePrefixFinder() throws Exception {
