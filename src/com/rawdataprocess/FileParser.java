@@ -75,6 +75,7 @@ public class FileParser extends Thread {
 	}
 	
 	public void parseAllFiles(){
+		System.out.println("Start to parse files from "+ startID + " to " + endID);
 		init();
 				
 		for (int i = startID; i <= endID; i++){
@@ -104,6 +105,7 @@ public class FileParser extends Thread {
 		}
 		
 		finalizeFunc();
+		System.out.println("finish parsing files from "+ startID + " to " + endID);
 	}
 	
 	public enum ParseResult {

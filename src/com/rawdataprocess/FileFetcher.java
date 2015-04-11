@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 import java.io.*;
 
@@ -17,10 +18,12 @@ public class FileFetcher extends Thread{
 	private int startID;
 	private int endID;
 	private Semaphore semp;
+	private ArrayList<Integer> failedFileList;
 	public FileFetcher(int startID, int endID, Semaphore semp) {
 		this.startID = startID;
 		this.endID = endID;
 		this.semp = semp;
+		this.failedFileList = new ArrayList<Integer>();
 	}
 	
 	public void run() {
@@ -66,7 +69,8 @@ public class FileFetcher extends Thread{
         } 
     }
 	
-	public void fetchAllFiles() {		
+	public void fetchAllFiles() {
+		System.out.println("Start to fetch files from " + startID + " to " + endID);
 		File logFile = null;
 		FileWriter fw = null;
 		try {			
@@ -86,12 +90,63 @@ public class FileFetcher extends Thread{
 			String httpUrl = Config.getAttri("OEIS_URL_PREFIX") + fileName;
 			String savedFilePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX")+ fileName;
 			boolean isGood = FileFetcher.httpDownload(httpUrl, savedFilePath);
+
 			try {
 				if(isGood) {
 					fw.write("Download "+ fileName + " successfully\n");
 					fw.flush();
 				} else {
+					failedFileList.add(i);
 					fw.write("Download "+ fileName + " failed\n");
+					System.out.println("Download "+ fileName + " failed");	
+					fw.flush();
+				}
+			} catch (IOException e) {
+				System.out.println(e.toString());
+			}
+		}
+		try {
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		if (failedFileList.isEmpty()) {
+			System.out.println("No exception when fetching files from " + startID + " to " + endID);
+		} else {
+			fetchFailedFiles();
+		}
+	}
+
+	private void fetchFailedFiles() {
+		// TODO Auto-generated method stub
+		System.out.println("Start to fetch failed files between " + startID + " and " + endID);
+		File logFile = null;
+		FileWriter fw = null;
+		try {			
+			logFile = new File(Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX") + 
+					"log_retry_" + new Integer(startID) + "_" + new Integer(endID));
+			if (!logFile.exists()) {
+				logFile.createNewFile();
+			}
+			
+			fw = new FileWriter(logFile, true);
+		} catch (IOException e) {
+			System.out.println(e.toString());
+		}
+		
+		for (int i = 0; i < failedFileList.size(); i++){
+			String fileName = Util.getIndexFromID(failedFileList.get(i));
+			String httpUrl = Config.getAttri("OEIS_URL_PREFIX") + fileName;
+			String savedFilePath = Config.getAttri("WEB_PAGE_SAVE_PATH_PREFIX")+ fileName;
+			boolean isGood = FileFetcher.httpDownload(httpUrl, savedFilePath);
+			try {
+				if(isGood) {
+					fw.write("Retry to download "+ fileName + " successfully\n");
+					fw.flush();
+				} else {
+					System.out.println("Retry to download "+ fileName + " failed");
+					fw.write("Retry to download "+ fileName + " failed\n");
 					fw.flush();
 				}
 			} catch (IOException e) {

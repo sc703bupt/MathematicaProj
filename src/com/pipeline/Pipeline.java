@@ -25,7 +25,7 @@ public class Pipeline {
 	
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
-		p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
+		p.execute(100000, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
 	}
 	
 	public void execute(int startId, int endId) {
