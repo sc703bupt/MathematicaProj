@@ -181,6 +181,8 @@ public class FormulaCalculater {
 	
 	// remember call this method when never use KernelLink
 	void close() {
-		kernelLink.close();
+		if (kernelLink != null) {
+			kernelLink.close();
+		}
 	}
 }
