@@ -110,6 +110,7 @@ public class BatchFormulaCalculater extends Thread{
 			}
 			
 			if (sampleItemID == exprItemID) {
+				// collecting expressions
 				List<String> exprList = new ArrayList<String>();
 				exprList.add(Util.getContentFromItem(exprItem));
 				while ((exprItem = exprFileBufferedReader.readLine()) != null) {
@@ -119,12 +120,24 @@ public class BatchFormulaCalculater extends Thread{
 					}
 					exprList.add(Util.getContentFromItem(exprItem));
 				}
-				String calculatedResult = fc.calculateToString(exprList, Util.getContentFromItem(sampleItem)
-						, Util.getIndexFromItem(sampleItem), statLogFileWriter); // get result calculated by formula
+				
+				// if the last number in sample is bigger than PROGRESSION_MAX_VALUE, use sample itself
+				String cuttedSample = Util.progressionCutter(sampleItem);
+				String calculatedResult = null;
+				if (cuttedSample.equals(sampleItem)) {
+					 calculatedResult = fc.calculateToString(exprList, Util.getContentFromItem(sampleItem)
+							, Util.getIndexFromItem(sampleItem), statLogFileWriter); // get result calculated by formula
+				} else {
+					 calculatedResult = Util.getContentFromItem(sampleItem);
+				}
+				
+				// if calculate fail, use sample instead
 				if (calculatedResult == null) {
 					calculatedResult = Util.getContentFromItem(sampleItem);
 					failedCalculateItemCount++;
 				}
+				
+				// cut and write
 				String cuttedResult = Util.progressionCutter(Util.getIndexFromItem(sampleItem) + ":" + calculatedResult);
 				formulaCalculatedFileWriter.write(cuttedResult + "\n");
 				formulaCalculatedFileWriter.flush();
@@ -177,6 +190,7 @@ public class BatchFormulaCalculater extends Thread{
 		statLogFileWriter.write("Total time used:" + (endTime-startTime)/1000 + "s\n");
 		
 		// close
+		fc.close();
 		sampleFileBufferedReader.close();
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
