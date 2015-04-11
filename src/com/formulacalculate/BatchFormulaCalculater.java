@@ -177,6 +177,7 @@ public class BatchFormulaCalculater extends Thread{
 		statLogFileWriter.write("Total time used:" + (endTime-startTime)/1000 + "s\n");
 		
 		// close
+		fc.close();
 		sampleFileBufferedReader.close();
 		exprFileBufferedReader.close();
 		formulaCalculatedFileWriter.close();
