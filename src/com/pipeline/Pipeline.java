@@ -29,12 +29,11 @@ public class Pipeline {
 		//p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
 		totalPageCount = Util.getTotalPageCountFromFile();
 		int targetEndId = Integer.valueOf(Config.getAttri("TARGET_END_ID"));
-		int i = 1;
-		for (i = 1; totalPageCount + i * 1000 <= targetEndId; i++) {
-			p.execute(100000,  totalPageCount + i * 1000);
+		while (totalPageCount + 1000 <= targetEndId) {
+			p.execute(1,  totalPageCount + 1000);
 		}
-		if (totalPageCount + (i-1) * 1000 < targetEndId) {
-			p.execute(100000,  targetEndId);
+		if (totalPageCount < targetEndId) {
+			p.execute(1,  targetEndId);
 		}
 	}
 	
