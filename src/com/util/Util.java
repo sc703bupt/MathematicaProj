@@ -57,6 +57,9 @@ public class Util {
 		}
 		content = content.trim();
 		for (int i = 0; i <= content.length() - 1; i++) {
+			if (i == 0 && content.charAt(i) == '-') {
+				continue;
+			}
 			char c = content.charAt(i);
 			if (!(c >= '0' && c <= '9')) {
 				return false;
