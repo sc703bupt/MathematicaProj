@@ -56,6 +56,9 @@ public class Util {
 			return false;
 		}
 		content = content.trim();
+		if (content.equals("")) {
+			return false;
+		}
 		for (int i = 0; i <= content.length() - 1; i++) {
 			if (i == 0 && content.charAt(i) == '-') {
 				continue;
@@ -185,22 +188,26 @@ public class Util {
 		}		
 	}
 	
-	// cut progression by the upper bound PROGRESSION_MAX_VALUE
+	// cut progression by the upper bound PROGRESSION_MAX_VALUE and PROGRESSION_LENGTH
 	public static String progressionCutter(String progression) {
 		String content = Util.getContentFromItem(progression);
 		String index = Util.getIndexFromItem(progression);
 		String[] progressionNumbers = content.trim().split(", ");
 		List<BigInteger> progressionNumberList = new ArrayList<BigInteger>();
 		int progressionMaxValue = Integer.parseInt(Config.getAttri("PROGRESSION_MAX_VALUE"));
+		int progressionMaxLength = Integer.parseInt(Config.getAttri("PROGRESSION_LENGTH"));
+		int currentLength = 0;
 		for (String numberStr : progressionNumbers) {
 			if (!Util.isNumber(numberStr.trim())) {
 				continue;
 			}
 			BigInteger number = new BigInteger(numberStr);
-			if (number.compareTo(BigInteger.valueOf(progressionMaxValue)) == 1) {
+			if (number.compareTo(BigInteger.valueOf(progressionMaxValue)) == 1
+				|| currentLength > progressionMaxLength) {
 				break;
 			}
 			progressionNumberList.add(number);
+			currentLength++;
 		}
 		String cuttedProgressionStr = progressionNumberList.toString();
 		return index + ":" + cuttedProgressionStr.substring(1, cuttedProgressionStr.length()-1);

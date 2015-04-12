@@ -26,14 +26,14 @@ public class Pipeline {
 	
 	public static void main(String[] args) {
 		Pipeline p = new Pipeline();
-		//p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
-		totalPageCount = Util.getTotalPageCountFromFile();
+		p.execute(1, Integer.valueOf(Config.getAttri("TARGET_END_ID")));
 		int targetEndId = Integer.valueOf(Config.getAttri("TARGET_END_ID"));
+		totalPageCount = Util.getTotalPageCountFromFile();
 		while (totalPageCount + 1000 <= targetEndId) {
-			p.execute(1,  totalPageCount + 1000);
+			p.execute(200000,  totalPageCount + 1000);
 		}
 		if (totalPageCount < targetEndId) {
-			p.execute(1,  targetEndId);
+			p.execute(200000,  targetEndId);
 		}
 	}
 	
@@ -347,7 +347,7 @@ public class Pipeline {
 		Util.appendFile(sourceForDivideFile, toBeAppendedSourceForDivideFile);
 		
 		// console log
-		System.out.println("Pipeline: merge done.");
+		System.out.println("Pipeline: batch calculation done.");
 		Util.setTotalPageCount(totalPageCount);
 	}
 	
