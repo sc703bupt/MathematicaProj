@@ -198,6 +198,10 @@ public class Pipeline {
 			BufferedReader sampleFileBufferedReader = new BufferedReader(new FileReader(sampleFile));
 			String oneLine = null;
 			while ((oneLine = sampleFileBufferedReader.readLine()) != null) {
+				//A25999:
+				if (oneLine.indexOf(":") == oneLine.length() - 1) {
+					continue;
+				}
 				int index = Integer.parseInt(Util.getIndexFromItem(oneLine).substring(1));
 				totalPageCount = (totalPageCount > index ? totalPageCount : index);
 				sampleMergedFileWriter.write(oneLine + "\n");
